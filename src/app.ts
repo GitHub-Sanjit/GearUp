@@ -5,11 +5,10 @@ import cors from "cors";
 import config from "./config";
 import { userRoutes } from "./modules/users/user.route";
 import { authRoutes } from "./modules/auth/auth.route";
-// import { postRoutes } from "./modules/post/post.route";
-// import { commentRoutes } from "./modules/comment/comment.route";
 import { notFound } from "./middlewares/notFound";
 import { globalErrorHandler } from "./middlewares/globalErrorHandler";
 import { categoryRoutes } from "./modules/category/caterory.route";
+import { gearRoutes } from "./modules/gears/gear.route";
 // import { subscriptionRoutes } from "./modules/subcription/subcription.route";
 // import { premiumRoutes } from "./modules/premium/premium.route";
 
@@ -37,7 +36,7 @@ app.get("/", async (req: Request, res: Response) => {
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/categories", categoryRoutes);
-// app.use("/api/posts", postRoutes);
+app.use("/api/gears", gearRoutes);
 // app.use("/api/comments", commentRoutes);
 // app.use("/api/subscription", subscriptionRoutes)
 // app.use("/api/premium", premiumRoutes)
