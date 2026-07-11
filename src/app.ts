@@ -4,11 +4,11 @@ import cors from "cors";
 
 import config from "./config";
 import { userRoutes } from "./modules/users/user.route";
-// import { authRoutes } from "./modules/auth/auth.route";
+import { authRoutes } from "./modules/auth/auth.route";
 // import { postRoutes } from "./modules/post/post.route";
 // import { commentRoutes } from "./modules/comment/comment.route";
-// import { notFound } from "./middlewares/notFound";
-// import { globalErrorHandler } from "./middlewares/globalErrorHandler";
+import { notFound } from "./middlewares/notFound";
+import { globalErrorHandler } from "./middlewares/globalErrorHandler";
 // import { subscriptionRoutes } from "./modules/subcription/subcription.route";
 // import { premiumRoutes } from "./modules/premium/premium.route";
 
@@ -23,7 +23,7 @@ app.use(
 
 // const endpointSecret = config.stripe_webhook_secret;
 
-app.use("/api/subscription/webhook", express.raw({ type: 'application/json' }))
+app.use("/api/subscription/webhook", express.raw({ type: "application/json" }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -34,14 +34,14 @@ app.get("/", async (req: Request, res: Response) => {
 });
 
 app.use("/api/users", userRoutes);
-// app.use("/api/auth", authRoutes);
+app.use("/api/auth", authRoutes);
 // app.use("/api/posts", postRoutes);
 // app.use("/api/comments", commentRoutes);
 // app.use("/api/subscription", subscriptionRoutes)
 // app.use("/api/premium", premiumRoutes)
 
-// app.use(notFound);
+app.use(notFound);
 
-// app.use(globalErrorHandler);
+app.use(globalErrorHandler);
 
 export default app;
