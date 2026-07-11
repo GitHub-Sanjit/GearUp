@@ -3,7 +3,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 
 import config from "./config";
-// import { userRoutes } from "./modules/users/user.route";
+import { userRoutes } from "./modules/users/user.route";
 // import { authRoutes } from "./modules/auth/auth.route";
 // import { postRoutes } from "./modules/post/post.route";
 // import { commentRoutes } from "./modules/comment/comment.route";
@@ -33,7 +33,7 @@ app.get("/", async (req: Request, res: Response) => {
   res.json({ message: "This is the Root Route And Welcome to Our API" });
 });
 
-// app.use("/api/users", userRoutes);
+app.use("/api/users", userRoutes);
 // app.use("/api/auth", authRoutes);
 // app.use("/api/posts", postRoutes);
 // app.use("/api/comments", commentRoutes);
