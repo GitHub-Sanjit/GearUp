@@ -36,6 +36,28 @@ const createGearIntoDB = async (
   return gear;
 };
 
+const getAllGearFromDB = async () => {
+  const gears = await prisma.gear.findMany({
+    include: {
+      category: true,
+      provider: {
+        omit: {
+          password: true,
+        },
+        include: {
+          profile: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return gears;
+};
+
 export const gearServices = {
   createGearIntoDB,
+  getAllGearFromDB,
 };

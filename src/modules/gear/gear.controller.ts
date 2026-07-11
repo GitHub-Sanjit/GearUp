@@ -9,10 +9,7 @@ const createGear = catchAsync(
     const providerId = req.user?.id as string;
     const payload = req.body;
 
-    const gear = await gearServices.createGearIntoDB(
-      providerId,
-      payload,
-    );
+    const gear = await gearServices.createGearIntoDB(providerId, payload);
 
     sendResponse(res, {
       success: true,
@@ -25,6 +22,20 @@ const createGear = catchAsync(
   },
 );
 
+const getAllGear = catchAsync(async (req: Request, res: Response) => {
+  const gears = await gearServices.getAllGearFromDB();
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Gear Retrieved Successfully",
+    data: {
+      gears,
+    },
+  });
+});
+
 export const gearController = {
   createGear,
+  getAllGear,
 };
