@@ -35,31 +35,17 @@ export const auth = (...requiredRoles: Role[]) => {
 
     const verifiedToken = jwtUtils.verifyToken(token, config.jwt_access_secret);
 
-    console.log("Verified Token:", verifiedToken.data);
     if (!verifiedToken.success) {
       throw new Error(verifiedToken.error);
     }
 
     const { email, name, id, role } = verifiedToken.data as JwtPayload;
 
-    console.log("Required Roles:", requiredRoles);
-    console.log("User Role:", role);
-    console.log("Includes:", requiredRoles.includes(role));
-
     if (requiredRoles.length && !requiredRoles.includes(role)) {
       throw new Error(
         "Forbidden. You don't have permission to access this resources",
       );
     }
-
-    // if (requiredRoles.length && !requiredRoles.includes(role)) {
-    //   console.log("BLOCKED");
-    //   return res.status(403).json({
-    //     success: false,
-    //     message: "Forbidden",
-    //   });
-    // }
-
     const user = await prisma.user.findUnique({
       where: { id, email, name, role },
     });
