@@ -8,3 +8,10 @@ enum Role {
     PROVIDER
     ADMIN
 }
+
+enum GearCondition {
+    NEW
+    EXCELLENT
+    GOOD
+    FAIR
+}
