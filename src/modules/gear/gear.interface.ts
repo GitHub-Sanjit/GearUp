@@ -11,3 +11,5 @@ export interface ICreateGearPayload {
   condition?: GearCondition;
   categoryId: string;
 }
+
+export type IUpdateGearPayload = Partial<ICreateGearPayload>;
