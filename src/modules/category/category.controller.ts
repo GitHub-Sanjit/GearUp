@@ -8,8 +8,7 @@ const createCategory = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const payload = req.body;
 
-    const category =
-      await categoryServices.createCategoryIntoDB(payload);
+    const category = await categoryServices.createCategoryIntoDB(payload);
 
     sendResponse(res, {
       success: true,
@@ -22,6 +21,22 @@ const createCategory = catchAsync(
   },
 );
 
+const getAllCategories = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const categories = await categoryServices.getAllCategoriesFromDB();
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Categories Retrieved Successfully",
+      data: {
+        categories,
+      },
+    });
+  },
+);
+
 export const categoryController = {
   createCategory,
+  getAllCategories,
 };
