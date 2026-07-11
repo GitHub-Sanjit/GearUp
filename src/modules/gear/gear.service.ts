@@ -57,7 +57,29 @@ const getAllGearFromDB = async () => {
   return gears;
 };
 
+const getSingleGearFromDB = async (gearId: string) => {
+  const gear = await prisma.gear.findUniqueOrThrow({
+    where: {
+      id: gearId,
+    },
+    include: {
+      category: true,
+      provider: {
+        omit: {
+          password: true,
+        },
+        include: {
+          profile: true,
+        },
+      },
+    },
+  });
+
+  return gear;
+};
+
 export const gearServices = {
   createGearIntoDB,
   getAllGearFromDB,
+  getSingleGearFromDB,
 };

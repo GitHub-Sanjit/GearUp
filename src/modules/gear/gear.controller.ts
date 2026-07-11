@@ -35,7 +35,23 @@ const getAllGear = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getSingleGear = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const gear = await gearServices.getSingleGearFromDB(id as string);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Gear Retrieved Successfully",
+    data: {
+      gear,
+    },
+  });
+});
+
 export const gearController = {
   createGear,
   getAllGear,
+  getSingleGear,
 };
