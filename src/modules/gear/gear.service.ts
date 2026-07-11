@@ -151,10 +151,27 @@ const deleteGearFromDB = async (gearId: string, providerId: string) => {
   return null;
 };
 
+const getMyGearFromDB = async (providerId: string) => {
+  const gears = await prisma.gear.findMany({
+    where: {
+      providerId,
+    },
+    include: {
+      category: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return gears;
+};
+
 export const gearServices = {
   createGearIntoDB,
   getAllGearFromDB,
   getSingleGearFromDB,
   updateGearInDB,
   deleteGearFromDB,
+  getMyGearFromDB,
 };

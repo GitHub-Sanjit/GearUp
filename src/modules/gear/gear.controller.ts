@@ -85,10 +85,26 @@ const deleteGear = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getMyGear = catchAsync(async (req: Request, res: Response) => {
+  const providerId = req.user?.id as string;
+
+  const gears = await gearServices.getMyGearFromDB(providerId);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Provider Gear Retrieved Successfully",
+    data: {
+      gears,
+    },
+  });
+});
+
 export const gearController = {
   createGear,
   getAllGear,
   getSingleGear,
   updateGear,
   deleteGear,
+  getMyGear,
 };

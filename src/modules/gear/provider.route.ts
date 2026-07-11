@@ -11,10 +11,6 @@ router.patch("/gear/:id", auth(Role.PROVIDER), gearController.updateGear);
 
 router.delete("/gear/:id", auth(Role.PROVIDER), gearController.deleteGear);
 
-// router.get(
-//   "/gear",
-//   auth(Role.PROVIDER),
-//   gearController.getMyGear,
-// );
+router.get("/gear", auth(Role.PROVIDER), gearController.getMyGear);
 
 export const providerRoutes = router;
