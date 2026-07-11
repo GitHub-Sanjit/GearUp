@@ -9,11 +9,7 @@ router.post("/gear", auth(Role.PROVIDER), gearController.createGear);
 
 router.patch("/gear/:id", auth(Role.PROVIDER), gearController.updateGear);
 
-// router.delete(
-//   "/gear/:id",
-//   auth(Role.PROVIDER),
-//   gearController.deleteGear,
-// );
+router.delete("/gear/:id", auth(Role.PROVIDER), gearController.deleteGear);
 
 // router.get(
 //   "/gear",
