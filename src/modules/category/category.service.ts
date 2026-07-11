@@ -1,6 +1,9 @@
 import httpStatus from "http-status";
 import { prisma } from "../../lib/prisma";
-import { ICreateCategoryPayload } from "./category.interface";
+import {
+  ICreateCategoryPayload,
+  IUpdateCategoryPayload,
+} from "./category.interface";
 
 const createCategoryIntoDB = async (payload: ICreateCategoryPayload) => {
   const { name, description } = payload;
@@ -45,10 +48,46 @@ const getSingleCategoryFromDB = async (categoryId: string) => {
   return category;
 };
 
+const updateCategoryInDB = async (
+  categoryId: string,
+  payload: IUpdateCategoryPayload,
+) => {
+  // Check if category exists
+  await prisma.category.findUniqueOrThrow({
+    where: {
+      id: categoryId,
+    },
+  });
+
+  // Check duplicate name only if name is being updated
+  if (payload.name) {
+    const existingCategory = await prisma.category.findFirst({
+      where: {
+        name: payload.name,
+        NOT: {
+          id: categoryId,
+        },
+      },
+    });
+
+    if (existingCategory) {
+      throw new Error(httpStatus.CONFLICT + " " + "Category already exists");
+    }
+  }
+
+  const updatedCategory = await prisma.category.update({
+    where: {
+      id: categoryId,
+    },
+    data: payload,
+  });
+
+  return updatedCategory;
+};
+
 export const categoryServices = {
   createCategoryIntoDB,
   getAllCategoriesFromDB,
   getSingleCategoryFromDB,
+  updateCategoryInDB,
 };
-
-

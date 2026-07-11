@@ -55,8 +55,28 @@ const getSingleCategory = catchAsync(
   },
 );
 
+const updateCategory = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const payload = req.body;
+
+  const updatedCategory = await categoryServices.updateCategoryInDB(
+    id as string,
+    payload,
+  );
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Category Updated Successfully",
+    data: {
+      category: updatedCategory,
+    },
+  });
+});
+
 export const categoryController = {
   createCategory,
   getAllCategories,
   getSingleCategory,
+  updateCategory,
 };
