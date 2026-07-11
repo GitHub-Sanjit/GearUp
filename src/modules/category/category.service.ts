@@ -35,7 +35,20 @@ const getAllCategoriesFromDB = async () => {
   return categories;
 };
 
+const getSingleCategoryFromDB = async (categoryId: string) => {
+  const category = await prisma.category.findUniqueOrThrow({
+    where: {
+      id: categoryId,
+    },
+  });
+
+  return category;
+};
+
 export const categoryServices = {
   createCategoryIntoDB,
   getAllCategoriesFromDB,
+  getSingleCategoryFromDB,
 };
+
+

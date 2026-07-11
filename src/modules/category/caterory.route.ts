@@ -9,10 +9,7 @@ router.post("/", auth(Role.ADMIN), categoryController.createCategory);
 
 router.get("/", categoryController.getAllCategories);
 
-// router.get(
-//   "/:id",
-//   categoryController.getSingleCategory,
-// );
+router.get("/:id", categoryController.getSingleCategory);
 
 // router.patch(
 //   "/:id",
