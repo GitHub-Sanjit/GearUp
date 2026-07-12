@@ -1,3 +1,4 @@
+import { Prisma } from "../../../generated/prisma/client";
 import { GearCondition } from "../../../generated/prisma/enums";
 
 export interface ICreateGearPayload {
@@ -13,3 +14,11 @@ export interface ICreateGearPayload {
 }
 
 export type IUpdateGearPayload = Partial<ICreateGearPayload>;
+
+export const allowedSortFields: Prisma.GearScalarFieldEnum[] = [
+  "createdAt",
+  "dailyRentalPrice",
+  "stockQuantity",
+  "availableQuantity",
+  "name",
+];

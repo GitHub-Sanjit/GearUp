@@ -1,5 +1,6 @@
+import { Prisma } from "../../../generated/prisma/client";
 import { prisma } from "../../lib/prisma";
-import { ICreateGearPayload, IUpdateGearPayload } from "./gear.interface";
+import { allowedSortFields, ICreateGearPayload, IUpdateGearPayload } from "./gear.interface";
 
 const createGearIntoDB = async (
   providerId: string,
@@ -37,10 +38,11 @@ const createGearIntoDB = async (
 };
 
 const getAllGearFromDB = async (query: any) => {
-  const { search, categoryId, brand, isAvailable } = query;
+  const { search, categoryId, brand, isAvailable, sortBy, sortOrder } = query;
 
-  const where: any = {};
+  const where: Prisma.GearWhereInput = {};
 
+  // Search
   if (search) {
     where.OR = [
       {
@@ -64,10 +66,12 @@ const getAllGearFromDB = async (query: any) => {
     ];
   }
 
+  // Category Filter
   if (categoryId) {
     where.categoryId = categoryId;
   }
 
+  // Brand Filter
   if (brand) {
     where.brand = {
       equals: brand,
@@ -75,22 +79,39 @@ const getAllGearFromDB = async (query: any) => {
     };
   }
 
+  // Availability Filter
   if (isAvailable !== undefined) {
     where.isAvailable = isAvailable === "true";
   }
 
+  // Pagination
   const page = Number(query.page) || 1;
   const limit = Number(query.limit) || 10;
   const skip = (page - 1) * limit;
 
+  // Total Count
   const total = await prisma.gear.count({
     where,
   });
 
+  // Sorting
+  const sortField: Prisma.GearScalarFieldEnum = allowedSortFields.includes(
+    sortBy as Prisma.GearScalarFieldEnum,
+  )
+    ? (sortBy as Prisma.GearScalarFieldEnum)
+    : "createdAt";
+
+  const orderBy: Prisma.GearOrderByWithRelationInput = {
+    [sortField]:
+      sortOrder === "asc" ? Prisma.SortOrder.asc : Prisma.SortOrder.desc,
+  };
+
+  // Fetch Data
   const gears = await prisma.gear.findMany({
     where,
     skip,
     take: limit,
+    orderBy,
     include: {
       category: true,
       provider: {
@@ -101,9 +122,6 @@ const getAllGearFromDB = async (query: any) => {
           profile: true,
         },
       },
-    },
-    orderBy: {
-      createdAt: "desc",
     },
   });
 
