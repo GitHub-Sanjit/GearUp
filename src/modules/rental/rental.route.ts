@@ -7,4 +7,6 @@ const router = Router();
 
 router.post("/", auth(Role.CUSTOMER), rentalController.createRental);
 
+router.get("/", auth(Role.CUSTOMER), rentalController.getMyRentals);
+
 export const rentalRoutes = router;
