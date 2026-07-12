@@ -64,8 +64,33 @@ const getAllGearFromDB = async (query: any) => {
     ];
   }
 
+  if (categoryId) {
+    where.categoryId = categoryId;
+  }
+
+  if (brand) {
+    where.brand = {
+      equals: brand,
+      mode: "insensitive",
+    };
+  }
+
+  if (isAvailable !== undefined) {
+    where.isAvailable = isAvailable === "true";
+  }
+
+  const page = Number(query.page) || 1;
+  const limit = Number(query.limit) || 10;
+  const skip = (page - 1) * limit;
+
+  const total = await prisma.gear.count({
+    where,
+  });
+
   const gears = await prisma.gear.findMany({
     where,
+    skip,
+    take: limit,
     include: {
       category: true,
       provider: {
@@ -82,7 +107,15 @@ const getAllGearFromDB = async (query: any) => {
     },
   });
 
-  return gears;
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+      totalPage: Math.ceil(total / limit),
+    },
+    gears,
+  };
 };
 
 const getSingleGearFromDB = async (gearId: string) => {
