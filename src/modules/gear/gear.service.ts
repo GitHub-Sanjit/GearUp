@@ -36,8 +36,36 @@ const createGearIntoDB = async (
   return gear;
 };
 
-const getAllGearFromDB = async () => {
+const getAllGearFromDB = async (query: any) => {
+  const { search, categoryId, brand, isAvailable } = query;
+
+  const where: any = {};
+
+  if (search) {
+    where.OR = [
+      {
+        name: {
+          contains: search,
+          mode: "insensitive",
+        },
+      },
+      {
+        description: {
+          contains: search,
+          mode: "insensitive",
+        },
+      },
+      {
+        brand: {
+          contains: search,
+          mode: "insensitive",
+        },
+      },
+    ];
+  }
+
   const gears = await prisma.gear.findMany({
+    where,
     include: {
       category: true,
       provider: {
