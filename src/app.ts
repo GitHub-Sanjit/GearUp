@@ -10,6 +10,7 @@ import { globalErrorHandler } from "./middlewares/globalErrorHandler";
 import { categoryRoutes } from "./modules/category/caterory.route";
 import { gearRoutes } from "./modules/gear/gear.route";
 import { providerRoutes } from "./modules/gear/provider.route";
+import { rentalRoutes } from "./modules/rental/rental.route";
 // import { subscriptionRoutes } from "./modules/subcription/subcription.route";
 // import { premiumRoutes } from "./modules/premium/premium.route";
 
@@ -39,7 +40,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/gear", gearRoutes);
 app.use("/api/provider", providerRoutes);
-// app.use("/api/comments", commentRoutes);
+app.use("/api/rentals", rentalRoutes);
 // app.use("/api/subscription", subscriptionRoutes)
 // app.use("/api/premium", premiumRoutes)
 
