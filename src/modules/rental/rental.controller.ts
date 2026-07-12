@@ -53,27 +53,45 @@ const getSingleRental = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const getProviderOrders = catchAsync(
-  async (req: Request, res: Response) => {
-    const providerId = req.user?.id as string;
+const getProviderOrders = catchAsync(async (req: Request, res: Response) => {
+  const providerId = req.user?.id as string;
 
-    const orders =
-      await rentalServices.getProviderOrdersFromDB(providerId);
+  const orders = await rentalServices.getProviderOrdersFromDB(providerId);
 
-    sendResponse(res, {
-      success: true,
-      statusCode: httpStatus.OK,
-      message: "Provider Orders Retrieved Successfully",
-      data: {
-        orders,
-      },
-    });
-  },
-);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Provider Orders Retrieved Successfully",
+    data: {
+      orders,
+    },
+  });
+});
+
+const updateRentalStatus = catchAsync(async (req: Request, res: Response) => {
+  const providerId = req.user?.id as string;
+  const rentalId = req.params.id;
+
+  const updatedOrder = await rentalServices.updateRentalStatusIntoDB(
+    providerId,
+    rentalId as string,
+    req.body.status,
+  );
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Rental Status Updated Successfully",
+    data: {
+      order: updatedOrder,
+    },
+  });
+});
 
 export const rentalController = {
   createRental,
   getMyRentals,
   getSingleRental,
   getProviderOrders,
+  updateRentalStatus,
 };

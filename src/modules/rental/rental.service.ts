@@ -1,3 +1,4 @@
+import { RentalStatus } from "../../../generated/prisma/client";
 import { prisma } from "../../lib/prisma";
 import { ICreateRentalPayload } from "./rental.interface";
 
@@ -196,9 +197,78 @@ const getProviderOrdersFromDB = async (providerId: string) => {
   return orders;
 };
 
+const updateRentalStatusIntoDB = async (
+  providerId: string,
+  rentalId: string,
+  status: RentalStatus,
+) => {
+  const rental = await prisma.rentalOrder.findUnique({
+    where: {
+      id: rentalId,
+    },
+    include: {
+      gear: true,
+    },
+  });
+
+  if (!rental) {
+    throw new Error("Rental not found.");
+  }
+
+  // Ownership check
+  if (rental.gear.providerId !== providerId) {
+    throw new Error(
+      "You are not authorized to update the status of this rental.",
+    );
+  }
+
+  // Allowed transitions
+  const allowedTransitions: Record<RentalStatus, RentalStatus[]> = {
+    PLACED: ["CONFIRMED", "CANCELLED"],
+    CONFIRMED: ["PICKED_UP"],
+    PICKED_UP: ["RETURNED"],
+    RETURNED: [],
+    CANCELLED: [],
+    PAID: ["PICKED_UP"],
+  };
+
+  if (!allowedTransitions[rental.status].includes(status)) {
+    throw new Error(
+      `Invalid status transition from ${rental.status} to ${status}.`,
+    );
+  }
+
+  const updatedRental = await prisma.rentalOrder.update({
+    where: {
+      id: rentalId,
+    },
+    data: {
+      status,
+    },
+    include: {
+      customer: {
+        omit: {
+          password: true,
+        },
+        include: {
+          profile: true,
+        },
+      },
+      gear: {
+        include: {
+          category: true,
+        },
+      },
+    },
+  });
+
+  return updatedRental;
+};
+
 export const rentalServices = {
   createRentalIntoDB,
   getMyRentalsFromDB,
   getSingleRentalFromDB,
   getProviderOrdersFromDB,
+  updateRentalStatusIntoDB,
 };
