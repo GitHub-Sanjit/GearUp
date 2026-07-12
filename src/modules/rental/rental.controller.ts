@@ -53,8 +53,27 @@ const getSingleRental = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getProviderOrders = catchAsync(
+  async (req: Request, res: Response) => {
+    const providerId = req.user?.id as string;
+
+    const orders =
+      await rentalServices.getProviderOrdersFromDB(providerId);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Provider Orders Retrieved Successfully",
+      data: {
+        orders,
+      },
+    });
+  },
+);
+
 export const rentalController = {
   createRental,
   getMyRentals,
   getSingleRental,
+  getProviderOrders,
 };

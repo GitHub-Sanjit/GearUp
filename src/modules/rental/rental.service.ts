@@ -1,4 +1,3 @@
-import httpStatus from "http-status";
 import { prisma } from "../../lib/prisma";
 import { ICreateRentalPayload } from "./rental.interface";
 
@@ -164,8 +163,42 @@ const getSingleRentalFromDB = async (customerId: string, rentalId: string) => {
   return rental;
 };
 
+const getProviderOrdersFromDB = async (providerId: string) => {
+  const orders = await prisma.rentalOrder.findMany({
+    where: {
+      gear: {
+        providerId,
+      },
+    },
+
+    include: {
+      customer: {
+        omit: {
+          password: true,
+        },
+        include: {
+          profile: true,
+        },
+      },
+
+      gear: {
+        include: {
+          category: true,
+        },
+      },
+    },
+
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return orders;
+};
+
 export const rentalServices = {
   createRentalIntoDB,
   getMyRentalsFromDB,
   getSingleRentalFromDB,
+  getProviderOrdersFromDB,
 };
