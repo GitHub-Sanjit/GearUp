@@ -1,6 +1,10 @@
 import { Prisma } from "../../../generated/prisma/client";
 import { prisma } from "../../lib/prisma";
-import { allowedSortFields, ICreateGearPayload, IUpdateGearPayload } from "./gear.interface";
+import {
+  allowedSortFields,
+  ICreateGearPayload,
+  IUpdateGearPayload,
+} from "./gear.interface";
 
 const createGearIntoDB = async (
   providerId: string,
@@ -82,6 +86,21 @@ const getAllGearFromDB = async (query: any) => {
   // Availability Filter
   if (isAvailable !== undefined) {
     where.isAvailable = isAvailable === "true";
+  }
+
+  // Price Range Filter
+  const { minPrice, maxPrice } = query;
+
+  if (minPrice || maxPrice) {
+    where.dailyRentalPrice = {};
+
+    if (minPrice) {
+      where.dailyRentalPrice.gte = Number(minPrice);
+    }
+
+    if (maxPrice) {
+      where.dailyRentalPrice.lte = Number(maxPrice);
+    }
   }
 
   // Pagination
