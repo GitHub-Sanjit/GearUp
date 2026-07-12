@@ -23,4 +23,10 @@ router.patch(
   rentalController.updateRentalStatus,
 );
 
+router.get(
+  "/provider/orders/:id",
+  auth(Role.PROVIDER),
+  rentalController.getProviderSingleOrder,
+);
+
 export const rentalRoutes = router;

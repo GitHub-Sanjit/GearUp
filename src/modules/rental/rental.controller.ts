@@ -88,10 +88,32 @@ const updateRentalStatus = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getProviderSingleOrder = catchAsync(
+  async (req: Request, res: Response) => {
+    const providerId = req.user?.id as string;
+    const rentalId = req.params.id;
+
+    const order = await rentalServices.getProviderSingleOrderFromDB(
+      providerId,
+      rentalId as string,
+    );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Provider Order Retrieved Successfully",
+      data: {
+        order,
+      },
+    });
+  },
+);
+
 export const rentalController = {
   createRental,
   getMyRentals,
   getSingleRental,
   getProviderOrders,
   updateRentalStatus,
+  getProviderSingleOrder,
 };

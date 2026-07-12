@@ -265,10 +265,48 @@ const updateRentalStatusIntoDB = async (
   return updatedRental;
 };
 
+const getProviderSingleOrderFromDB = async (
+  providerId: string,
+  rentalId: string,
+) => {
+  const order = await prisma.rentalOrder.findUnique({
+    where: {
+      id: rentalId,
+    },
+    include: {
+      customer: {
+        omit: {
+          password: true,
+        },
+        include: {
+          profile: true,
+        },
+      },
+      gear: {
+        include: {
+          category: true,
+        },
+      },
+    },
+  });
+
+  if (!order) {
+    throw new Error("Order not found.");
+  }
+
+  // Authorization Check
+  if (order.gear.providerId !== providerId) {
+    throw new Error("You are not authorized to access this order.");
+  }
+
+  return order;
+};
+
 export const rentalServices = {
   createRentalIntoDB,
   getMyRentalsFromDB,
   getSingleRentalFromDB,
   getProviderOrdersFromDB,
   updateRentalStatusIntoDB,
+  getProviderSingleOrderFromDB,
 };

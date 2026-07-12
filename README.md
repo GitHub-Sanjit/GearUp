@@ -10,16 +10,16 @@ GearUp is a RESTful backend API for a sports and outdoor equipment rental platfo
 
 # 🚀 Tech Stack
 
-- **Node.js**
-- **Express.js**
-- **TypeScript**
-- **PostgreSQL**
-- **Prisma ORM**
-- **JWT Authentication**
-- **bcryptjs**
-- **Cookie Parser**
-- **HTTP Status**
-- **ESLint + Prettier**
+- Node.js
+- Express.js
+- TypeScript
+- PostgreSQL
+- Prisma ORM
+- JWT Authentication
+- bcryptjs
+- Cookie Parser
+- HTTP Status
+- ESLint + Prettier
 
 ---
 
@@ -34,18 +34,18 @@ src/
 │   ├── lib/
 │   ├── middlewares/
 │   ├── modules/
+│   │   ├── auth/
+│   │   ├── user/
+│   │   ├── category/
+│   │   ├── gear/
+│   │   └── rental/
 │   │
-│   ├── auth/
-│   ├── user/
-│   ├── category/
-│   └── gear/
-│
 │   ├── routes/
 │   ├── utils/
 │   └── app.ts
 │
-├── server.ts
-└── generated/
+├── generated/
+└── server.ts
 ```
 
 ---
@@ -67,6 +67,7 @@ src/
 
 - One User has one Profile
 - One Provider has many Gear
+- One Customer has many Rental Orders
 
 ---
 
@@ -114,6 +115,29 @@ src/
 
 - Belongs to one Provider
 - Belongs to one Category
+- Has many Rental Orders
+
+---
+
+## Rental Order
+
+- id
+- customerId
+- gearId
+- quantity
+- startDate
+- endDate
+- totalDays
+- totalAmount
+- status
+- isPaid
+- createdAt
+- updatedAt
+
+### Relations
+
+- Belongs to one Customer
+- Belongs to one Gear
 
 ---
 
@@ -123,7 +147,7 @@ JWT Authentication
 
 Supported authentication methods
 
-- Authorization Header
+### Authorization Header
 
 ```
 Bearer <token>
@@ -135,7 +159,7 @@ or
 <token>
 ```
 
-- HTTP Cookies
+### Cookies
 
 ```
 accessToken=<jwt>
@@ -145,11 +169,11 @@ accessToken=<jwt>
 
 # 👤 User Roles
 
-| Role     | Permission          |
-| -------- | ------------------- |
-| CUSTOMER | Browse & Rent Gear  |
-| PROVIDER | Manage Own Gear     |
-| ADMIN    | Platform Management |
+| Role | Permission |
+|------|------------|
+| CUSTOMER | Browse & Rent Gear |
+| PROVIDER | Manage Own Gear & Orders |
+| ADMIN | Platform Management |
 
 ---
 
@@ -169,16 +193,16 @@ accessToken=<jwt>
 
 ### Endpoints
 
-| Method | Endpoint              | Description       |
-| ------ | --------------------- | ----------------- |
-| POST   | /api/users/register   | Register User     |
-| GET    | /api/users/me         | Get My Profile    |
-| PUT    | /api/users/my-profile | Update My Profile |
+| Method | Endpoint |
+|--------|----------|
+| POST | /api/users/register |
+| GET | /api/users/me |
+| PUT | /api/users/my-profile |
 
 ### Features
 
 - Register User
-- Create Profile Automatically
+- Auto Create Profile
 - Update Profile
 - Get Current User
 
@@ -188,19 +212,18 @@ accessToken=<jwt>
 
 ### Endpoints
 
-| Method | Endpoint            | Access |
-| ------ | ------------------- | ------ |
-| POST   | /api/categories     | Admin  |
-| GET    | /api/categories     | Public |
-| GET    | /api/categories/:id | Public |
-| PATCH  | /api/categories/:id | Admin  |
-| DELETE | /api/categories/:id | Admin  |
+| Method | Endpoint | Access |
+|--------|----------|--------|
+| POST | /api/categories | Admin |
+| GET | /api/categories | Public |
+| GET | /api/categories/:id | Public |
+| PATCH | /api/categories/:id | Admin |
+| DELETE | /api/categories/:id | Admin |
 
 ### Features
 
 - Create Category
-- Get All Categories
-- Get Single Category
+- View Categories
 - Update Category
 - Delete Category
 
@@ -210,54 +233,97 @@ accessToken=<jwt>
 
 ### Public Endpoints
 
-| Method | Endpoint      | Access |
-| ------ | ------------- | ------ |
-| GET    | /api/gear     | Public |
-| GET    | /api/gear/:id | Public |
-
----
+| Method | Endpoint |
+|--------|----------|
+| GET | /api/gear |
+| GET | /api/gear/:id |
 
 ### Provider Endpoints
 
-| Method | Endpoint               | Access   |
-| ------ | ---------------------- | -------- |
-| POST   | /api/provider/gear     | Provider |
-| PATCH  | /api/provider/gear/:id | Provider |
-| DELETE | /api/provider/gear/:id | Provider |
-| GET    | /api/provider/gear     | Provider |
-
----
+| Method | Endpoint |
+|--------|----------|
+| POST | /api/provider/gear |
+| GET | /api/provider/gear |
+| PATCH | /api/provider/gear/:id |
+| DELETE | /api/provider/gear/:id |
 
 ### Features
 
 - Create Gear
-- Get All Gear
-- Get Single Gear
 - Update Own Gear
 - Delete Own Gear
-- View Own Gear Inventory
+- Get Own Inventory
+- Get Single Gear
+- Search by Name, Description & Brand
+- Filter by Category
+- Filter by Brand
+- Filter by Availability
+- Filter by Price Range
+- Sorting
+- Pagination with Metadata
+
+---
+
+## ✅ Rental Order Module
+
+### Customer Endpoints
+
+| Method | Endpoint |
+|--------|----------|
+| POST | /api/rentals |
+| GET | /api/rentals |
+| GET | /api/rentals/:id |
+
+### Provider Endpoints
+
+| Method | Endpoint |
+|--------|----------|
+| GET | /api/rentals/provider/orders |
+| GET | /api/rentals/provider/orders/:id |
+| PATCH | /api/rentals/provider/orders/:id |
+
+### Features
+
+#### Customer
+
+- Create Rental Order
+- Calculate Rental Duration
+- Calculate Total Rental Cost
+- Reduce Available Gear Quantity
+- Automatically Mark Gear Unavailable When Stock Becomes Zero
+- View Rental History
+- View Rental Details
+
+#### Provider
+
+- View Incoming Rental Orders
+- View Single Rental Order
+- Update Rental Status
+- Ownership Validation
+- Rental Status Transition Validation
 
 ---
 
 # 🔒 Authorization Rules
 
-### Customer
+## Customer
 
-- View Gear
 - View Categories
+- Browse Gear
+- Create Rental
+- View Own Rentals
 
 ---
 
-### Provider
+## Provider
 
-- Create Gear
-- Update Own Gear
-- Delete Own Gear
-- View Own Gear
+- Manage Own Gear
+- View Incoming Orders
+- Update Rental Status
 
 ---
 
-### Admin
+## Admin
 
 - Manage Categories
 
@@ -265,11 +331,13 @@ accessToken=<jwt>
 
 # 🛡️ Security
 
-- Password Hashing using bcrypt
+- Password Hashing (bcrypt)
 - JWT Authentication
 - Protected Routes
 - Role Based Authorization
-- Ownership Validation
+- Resource Ownership Validation
+- Rental Status Validation
+- Prisma Transactions
 - Global Error Handling
 
 ---
@@ -305,7 +373,7 @@ GET    /api/categories
 
 GET    /api/categories/:id
 
-PATCH /api/categories/:id
+PATCH  /api/categories/:id
 
 DELETE /api/categories/:id
 ```
@@ -336,18 +404,39 @@ DELETE /api/provider/gear/:id
 
 ---
 
+## Rental Orders
+
+### Customer
+
+```
+POST   /api/rentals
+
+GET    /api/rentals
+
+GET    /api/rentals/:id
+```
+
+### Provider
+
+```
+GET    /api/rentals/provider/orders
+
+GET    /api/rentals/provider/orders/:id
+
+PATCH  /api/rentals/provider/orders/:id
+```
+
+---
+
 # 🚧 Upcoming Features
 
-- Rental Order Module
 - Payment Module (Stripe / SSLCommerz)
+- Payment History
 - Reviews
-- Search
-- Filtering
-- Pagination
-- Sorting
-- Provider Dashboard
-- Admin Dashboard
-- Analytics
+- Admin Module
+- Dashboard Analytics
+- API Validation (Zod)
+- Swagger API Documentation
 
 ---
 
@@ -355,7 +444,15 @@ DELETE /api/provider/gear/:id
 
 **Sanjit Sarkar**
 
-Full Stack Developer (Node.js | Express | TypeScript | PostgreSQL | Prisma)
+Full Stack Developer
+
+**Tech Stack**
+
+- Node.js
+- Express.js
+- TypeScript
+- PostgreSQL
+- Prisma ORM
 
 ---
 
