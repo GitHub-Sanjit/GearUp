@@ -209,9 +209,86 @@ const getProviderPayments = async (providerId: string) => {
   return payments;
 };
 
+const getAllPayments = async (query: any) => {
+  const {
+    status,
+    provider,
+    page = 1,
+    limit = 10,
+    sortBy = "createdAt",
+    sortOrder = "desc",
+  } = query;
+
+  const where: any = {};
+
+  if (status) {
+    where.status = status;
+  }
+
+  if (provider) {
+    where.provider = provider;
+  }
+
+  const currentPage = Number(page);
+  const currentLimit = Number(limit);
+
+  const skip = (currentPage - 1) * currentLimit;
+
+  const total = await prisma.payment.count({
+    where,
+  });
+
+  const payments = await prisma.payment.findMany({
+    where,
+
+    skip,
+    take: currentLimit,
+
+    orderBy: {
+      [sortBy]: sortOrder,
+    },
+
+    include: {
+      rentalOrder: {
+        include: {
+          customer: {
+            omit: {
+              password: true,
+            },
+          },
+
+          gear: {
+            include: {
+              category: true,
+
+              provider: {
+                omit: {
+                  password: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return {
+    meta: {
+      page: currentPage,
+      limit: currentLimit,
+      total,
+      totalPage: Math.ceil(total / currentLimit),
+    },
+
+    data: payments,
+  };
+};
+
 export const paymentServices = {
   createCheckoutSession,
   handleWebhook,
   getMyPayments,
   getProviderPayments,
+  getAllPayments,
 };
