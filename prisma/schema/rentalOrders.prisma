@@ -19,6 +19,8 @@ model RentalOrder {
     status RentalStatus @default(PLACED)
     isPaid Boolean      @default(false)
 
+    payment Payment?
+
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
