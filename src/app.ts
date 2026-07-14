@@ -24,9 +24,7 @@ app.use(
   }),
 );
 
-// const endpointSecret = config.stripe_webhook_secret;
-
-app.use("/api/subscription/webhook", express.raw({ type: "application/json" }));
+app.use("/api/payments/webhook", express.raw({ type: "application/json" }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -42,7 +40,7 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/gear", gearRoutes);
 app.use("/api/provider", providerRoutes);
 app.use("/api/rentals", rentalRoutes);
-app.use("/api/payments", paymentRoutes)
+app.use("/api/payments", paymentRoutes);
 // app.use("/api/premium", premiumRoutes)
 
 app.use(notFound);

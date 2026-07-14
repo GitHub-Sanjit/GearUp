@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import config from "../../config";
 import { prisma } from "../../lib/prisma";
 import { stripe } from "../../lib/stripe";
+import { handleCheckoutCompleted } from "./payment.utils";
 
 const createCheckoutSession = async (userId: string, rentalOrderId: string) => {
   // 1. Find rental order
@@ -86,6 +87,77 @@ const createCheckoutSession = async (userId: string, rentalOrderId: string) => {
   };
 };
 
+const handleWebhook = async (payload: Buffer, signature: string) => {
+  const endpointSecret = config.stripe_webhook_secret;
+
+  const event = stripe.webhooks.constructEvent(
+    payload,
+    signature,
+    endpointSecret,
+  );
+
+  switch (event.type) {
+    case "checkout.session.completed":
+      await handleCheckoutCompleted(
+        event.data.object as Stripe.Checkout.Session,
+      );
+      break;
+
+    default:
+      console.log(`Unhandled event type: ${event.type}`);
+      break;
+  }
+};
+
+const getMyPayments = async (userId: string) => {
+  return prisma.payment.findMany({
+    where: {
+      rentalOrder: {
+        customerId: userId,
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    select: {
+      id: true,
+      amount: true,
+      provider: true,
+      status: true,
+      paidAt: true,
+      createdAt: true,
+
+      rentalOrder: {
+        select: {
+          id: true,
+          status: true,
+          startDate: true,
+          endDate: true,
+          totalAmount: true,
+
+          gear: {
+            select: {
+              id: true,
+              name: true,
+              brand: true,
+              image: true,
+
+              category: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+};
+
 export const paymentServices = {
   createCheckoutSession,
+  handleWebhook,
+  getMyPayments,
 };

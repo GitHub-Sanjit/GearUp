@@ -23,6 +23,36 @@ const createCheckoutSession = catchAsync(
   },
 );
 
+const handleWebhook = catchAsync(async (req: Request, res: Response) => {
+  const payload = req.body as Buffer;
+
+  const signature = req.headers["stripe-signature"] as string;
+
+  await paymentServices.handleWebhook(payload, signature);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Webhook processed successfully",
+    data: null,
+  });
+});
+
+const getMyPayments = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user!.id;
+
+  const result = await paymentServices.getMyPayments(userId);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Payments retrieved successfully",
+    data: result,
+  });
+});
+
 export const paymentController = {
   createCheckoutSession,
+  handleWebhook,
+  getMyPayments,
 };
