@@ -51,8 +51,22 @@ const getMyPayments = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getProviderPayments = catchAsync(async (req: Request, res: Response) => {
+  const providerId = req.user!.id;
+
+  const result = await paymentServices.getProviderPayments(providerId);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Provider payments retrieved successfully",
+    data: result,
+  });
+});
+
 export const paymentController = {
   createCheckoutSession,
   handleWebhook,
   getMyPayments,
+  getProviderPayments,
 };

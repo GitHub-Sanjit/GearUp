@@ -156,8 +156,62 @@ const getMyPayments = async (userId: string) => {
   });
 };
 
+const getProviderPayments = async (providerId: string) => {
+  const payments = await prisma.payment.findMany({
+    where: {
+      rentalOrder: {
+        gear: {
+          providerId,
+        },
+      },
+    },
+
+    orderBy: {
+      createdAt: "desc",
+    },
+
+    select: {
+      id: true,
+      amount: true,
+      provider: true,
+      status: true,
+      paidAt: true,
+      createdAt: true,
+
+      rentalOrder: {
+        select: {
+          id: true,
+          startDate: true,
+          endDate: true,
+          totalAmount: true,
+
+          customer: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+
+          gear: {
+            select: {
+              id: true,
+              name: true,
+              brand: true,
+              image: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return payments;
+};
+
 export const paymentServices = {
   createCheckoutSession,
   handleWebhook,
   getMyPayments,
+  getProviderPayments,
 };
