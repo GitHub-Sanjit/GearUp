@@ -5,7 +5,7 @@ import { IRegisterUserPayload } from "./user.interface";
 import { ActiveStatus } from "../../../generated/prisma/enums";
 
 const userRegisterIntoDB = async (payload: IRegisterUserPayload) => {
-  const { name, email, password, profilePhoto } = payload;
+  const { name, email, password, profilePhoto, role } = payload;
   const isUserExist = await prisma.user.findUnique({
     where: { email },
   });
@@ -24,6 +24,7 @@ const userRegisterIntoDB = async (payload: IRegisterUserPayload) => {
       name,
       email,
       password: hashedPassword,
+      role,
       profile: {
         create: {
           profilePhoto,
