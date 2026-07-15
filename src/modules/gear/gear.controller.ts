@@ -103,6 +103,18 @@ const getMyGear = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getAllGearForAdmin = catchAsync(async (req: Request, res: Response) => {
+  const result = await gearServices.getAllGearForAdmin(req.query);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "All gears retrieved successfully",
+    data: result.gears,
+    meta: result.meta,
+  });
+});
+
 export const gearController = {
   createGear,
   getAllGear,
@@ -110,4 +122,5 @@ export const gearController = {
   updateGear,
   deleteGear,
   getMyGear,
+  getAllGearForAdmin,
 };

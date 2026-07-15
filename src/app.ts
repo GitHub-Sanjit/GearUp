@@ -13,6 +13,7 @@ import { providerRoutes } from "./modules/gear/provider.route";
 import { rentalRoutes } from "./modules/rental/rental.route";
 import { paymentRoutes } from "./modules/payment/payment.route";
 import { adminUserRoutes } from "./modules/users/admin.route";
+import { adminGearRoutes } from "./modules/gear/admin.route";
 // import { subscriptionRoutes } from "./modules/subcription/subcription.route";
 // import { premiumRoutes } from "./modules/premium/premium.route";
 
@@ -44,6 +45,7 @@ app.use("/api/rentals", rentalRoutes);
 app.use("/api/payments", paymentRoutes);
 
 app.use("/api/admin", adminUserRoutes);
+app.use("/api/admin", adminGearRoutes);
 
 /*
   {

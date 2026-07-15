@@ -265,6 +265,137 @@ const getMyGearFromDB = async (providerId: string) => {
   return gears;
 };
 
+const getAllGearForAdmin = async (query: any) => {
+  const {
+    search,
+    categoryId,
+    brand,
+    isAvailable,
+    minPrice,
+    maxPrice,
+    sortBy,
+    sortOrder,
+  } = query;
+
+  const where: Prisma.GearWhereInput = {};
+
+  // Search
+  if (search) {
+    where.OR = [
+      {
+        name: {
+          contains: search,
+          mode: "insensitive",
+        },
+      },
+      {
+        description: {
+          contains: search,
+          mode: "insensitive",
+        },
+      },
+      {
+        brand: {
+          contains: search,
+          mode: "insensitive",
+        },
+      },
+    ];
+  }
+
+  // Filters
+  if (categoryId) {
+    where.categoryId = categoryId;
+  }
+
+  if (brand) {
+    where.brand = {
+      equals: brand,
+      mode: "insensitive",
+    };
+  }
+
+  if (isAvailable !== undefined) {
+    where.isAvailable = isAvailable === "true";
+  }
+
+  // Price Range
+  if (minPrice || maxPrice) {
+    where.dailyRentalPrice = {};
+
+    if (minPrice) {
+      where.dailyRentalPrice.gte = Number(minPrice);
+    }
+
+    if (maxPrice) {
+      where.dailyRentalPrice.lte = Number(maxPrice);
+    }
+  }
+
+  // Pagination
+  const page = Number(query.page) || 1;
+  const limit = Number(query.limit) || 10;
+  const skip = (page - 1) * limit;
+
+  // Total
+  const total = await prisma.gear.count({
+    where,
+  });
+
+  // Sorting
+  const orderBy: Prisma.GearOrderByWithRelationInput =
+    sortBy && allowedSortFields.includes(sortBy)
+      ? {
+          [sortBy]:
+            sortOrder === "asc" ? Prisma.SortOrder.asc : Prisma.SortOrder.desc,
+        }
+      : {
+          createdAt: Prisma.SortOrder.desc,
+        };
+
+  // Query
+  const gears = await prisma.gear.findMany({
+    where,
+    skip,
+    take: limit,
+    orderBy,
+
+    include: {
+      category: true,
+
+      provider: {
+        omit: {
+          password: true,
+        },
+
+        include: {
+          profile: true,
+        },
+      },
+
+      rentals: {
+        select: {
+          id: true,
+          status: true,
+          isPaid: true,
+          startDate: true,
+          endDate: true,
+        },
+      },
+    },
+  });
+
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+      totalPage: Math.ceil(total / limit),
+    },
+    gears,
+  };
+};
+
 export const gearServices = {
   createGearIntoDB,
   getAllGearFromDB,
@@ -272,4 +403,5 @@ export const gearServices = {
   updateGearInDB,
   deleteGearFromDB,
   getMyGearFromDB,
+  getAllGearForAdmin,
 };

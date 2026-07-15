@@ -22,3 +22,5 @@ export const allowedSortFields: Prisma.GearScalarFieldEnum[] = [
   "availableQuantity",
   "name",
 ];
+
+
