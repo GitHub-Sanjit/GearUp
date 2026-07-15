@@ -12,6 +12,7 @@ import { gearRoutes } from "./modules/gear/gear.route";
 import { providerRoutes } from "./modules/gear/provider.route";
 import { rentalRoutes } from "./modules/rental/rental.route";
 import { paymentRoutes } from "./modules/payment/payment.route";
+import { adminUserRoutes } from "./modules/users/admin.route";
 // import { subscriptionRoutes } from "./modules/subcription/subcription.route";
 // import { premiumRoutes } from "./modules/premium/premium.route";
 
@@ -41,7 +42,15 @@ app.use("/api/gear", gearRoutes);
 app.use("/api/provider", providerRoutes);
 app.use("/api/rentals", rentalRoutes);
 app.use("/api/payments", paymentRoutes);
-// app.use("/api/premium", premiumRoutes)
+
+app.use("/api/admin", adminUserRoutes);
+
+/*
+  {
+    "email": "admin@example.com",
+    "password": "123456"
+  }
+*/
 
 app.use(notFound);
 

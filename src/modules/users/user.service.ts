@@ -78,8 +78,87 @@ const updateMyProfileInDB = async (userId: string, payload: any) => {
   return updatedUser;
 };
 
+const getAllUsers = async (query: any) => {
+  const {
+    search,
+    role,
+    activeStatus,
+    page = 1,
+    limit = 10,
+    sortBy = "createdAt",
+    sortOrder = "desc",
+  } = query;
+
+  const where: any = {};
+
+  if (search) {
+    where.OR = [
+      {
+        name: {
+          contains: search,
+          mode: "insensitive",
+        },
+      },
+      {
+        email: {
+          contains: search,
+          mode: "insensitive",
+        },
+      },
+    ];
+  }
+
+  if (role) {
+    where.role = role;
+  }
+
+  if (activeStatus) {
+    where.activeStatus = activeStatus;
+  }
+
+  const currentPage = Number(page);
+  const currentLimit = Number(limit);
+
+  const skip = (currentPage - 1) * currentLimit;
+
+  const total = await prisma.user.count({
+    where,
+  });
+
+  const users = await prisma.user.findMany({
+    where,
+
+    skip,
+    take: currentLimit,
+
+    orderBy: {
+      [sortBy]: sortOrder === "asc" ? "asc" : "desc",
+    },
+
+    include: {
+      profile: true,
+    },
+
+    omit: {
+      password: true,
+    },
+  });
+
+  return {
+    meta: {
+      page: currentPage,
+      limit: currentLimit,
+      total,
+      totalPage: Math.ceil(total / currentLimit),
+    },
+
+    data: users,
+  };
+};
+
 export const userServices = {
   userRegisterIntoDB,
   getMyProfileFromDB,
   updateMyProfileInDB,
+  getAllUsers,
 };
