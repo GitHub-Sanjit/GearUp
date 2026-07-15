@@ -3,11 +3,15 @@ import { Role } from "../../../generated/prisma/client";
 import { auth } from "../../middlewares/auth";
 import { paymentController } from "./payment.controller";
 
+import { validateRequest } from "../../middlewares/validateRequest";
+import { paymentValidation } from "./payment.validation";
+
 const router = Router();
 
 router.post(
   "/checkout",
   auth(Role.CUSTOMER),
+  validateRequest(paymentValidation.createCheckoutSessionValidationSchema),
   paymentController.createCheckoutSession,
 );
 
