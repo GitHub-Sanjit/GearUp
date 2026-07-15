@@ -1,5 +1,6 @@
-import { RentalStatus } from "../../../generated/prisma/client";
+import { Prisma, RentalStatus } from "../../../generated/prisma/client";
 import { prisma } from "../../lib/prisma";
+import { allowedSortFields } from "../gear/gear.interface";
 import { ICreateRentalPayload } from "./rental.interface";
 
 const createRentalIntoDB = async (
@@ -302,6 +303,119 @@ const getProviderSingleOrderFromDB = async (
   return order;
 };
 
+const getAllRentalsForAdmin = async (query: any) => {
+  const { search, status, isPaid, sortBy, sortOrder, page, limit } = query;
+
+  const where: Prisma.RentalOrderWhereInput = {};
+
+  // Search
+  if (search) {
+    where.OR = [
+      {
+        customer: {
+          name: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+      },
+      {
+        customer: {
+          email: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+      },
+      {
+        gear: {
+          name: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+      },
+    ];
+  }
+
+  // Filter by rental status
+  if (status) {
+    where.status = status;
+  }
+
+  // Filter by payment status
+  if (isPaid !== undefined) {
+    where.isPaid = isPaid === "true";
+  }
+
+  // Pagination
+  const currentPage = Number(page) || 1;
+  const currentLimit = Number(limit) || 10;
+  const skip = (currentPage - 1) * currentLimit;
+
+  // Total
+  const total = await prisma.rentalOrder.count({
+    where,
+  });
+
+  // Sorting
+  const orderBy: Prisma.RentalOrderOrderByWithRelationInput =
+    sortBy && allowedSortFields.includes(sortBy)
+      ? {
+          [sortBy]:
+            sortOrder === "asc" ? Prisma.SortOrder.asc : Prisma.SortOrder.desc,
+        }
+      : {
+          createdAt: Prisma.SortOrder.desc,
+        };
+
+  // Query
+  const rentals = await prisma.rentalOrder.findMany({
+    where,
+    skip,
+    take: currentLimit,
+    orderBy,
+
+    include: {
+      customer: {
+        omit: {
+          password: true,
+        },
+        include: {
+          profile: true,
+        },
+      },
+
+      gear: {
+        include: {
+          category: true,
+
+          provider: {
+            omit: {
+              password: true,
+            },
+            include: {
+              profile: true,
+            },
+          },
+        },
+      },
+
+      payment: true,
+    },
+  });
+
+  return {
+    meta: {
+      page: currentPage,
+      limit: currentLimit,
+      total,
+      totalPage: Math.ceil(total / currentLimit),
+    },
+    data: rentals,
+  };
+};
+
 export const rentalServices = {
   createRentalIntoDB,
   getMyRentalsFromDB,
@@ -309,4 +423,5 @@ export const rentalServices = {
   getProviderOrdersFromDB,
   updateRentalStatusIntoDB,
   getProviderSingleOrderFromDB,
+  getAllRentalsForAdmin,
 };

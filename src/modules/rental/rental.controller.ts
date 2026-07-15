@@ -109,6 +109,20 @@ const getProviderSingleOrder = catchAsync(
   },
 );
 
+const getAllRentalsForAdmin = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await rentalServices.getAllRentalsForAdmin(req.query);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Rentals retrieved successfully",
+      data: result.data,
+      meta: result.meta,
+    });
+  },
+);
+
 export const rentalController = {
   createRental,
   getMyRentals,
@@ -116,4 +130,5 @@ export const rentalController = {
   getProviderOrders,
   updateRentalStatus,
   getProviderSingleOrder,
+  getAllRentalsForAdmin,
 };
