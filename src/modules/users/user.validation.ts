@@ -1,4 +1,4 @@
-import { Role } from "../../../generated/prisma/enums";
+import { ActiveStatus, Role } from "../../../generated/prisma/enums";
 import { z } from "zod";
 
 const registerUserValidationSchema = z.object({
@@ -34,7 +34,14 @@ const updateMyProfileValidationSchema = z.object({
   }),
 });
 
+const updateUserStatusValidationSchema = z.object({
+  body: z.object({
+    activeStatus: z.nativeEnum(ActiveStatus),
+  }),
+});
+
 export const userValidation = {
   registerUserValidationSchema,
   updateMyProfileValidationSchema,
+  updateUserStatusValidationSchema,
 };
