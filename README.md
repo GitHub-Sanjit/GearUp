@@ -2,9 +2,9 @@
 
 > **Rent Sports & Outdoor Gear Instantly**
 
-GearUp is a RESTful backend API for a sports and outdoor equipment rental platform. Customers can browse and rent gear, providers can manage their inventory, and admins oversee the platform.
+GearUp is a RESTful Backend API for a sports and outdoor equipment rental platform. Customers can browse and rent gear, providers can manage inventory and rental orders, while administrators oversee the entire platform.
 
-> 🚧 **Project Status:** In Progress
+> 🚀 **Project Status:** Completed Backend API
 
 ---
 
@@ -16,10 +16,12 @@ GearUp is a RESTful backend API for a sports and outdoor equipment rental platfo
 - PostgreSQL
 - Prisma ORM
 - JWT Authentication
+- Stripe Payment Gateway
 - bcryptjs
 - Cookie Parser
 - HTTP Status
-- ESLint + Prettier
+- ESLint
+- Prettier
 
 ---
 
@@ -28,24 +30,22 @@ GearUp is a RESTful backend API for a sports and outdoor equipment rental platfo
 ```text
 src/
 │
-├── app/
-│   ├── config/
-│   ├── errors/
-│   ├── lib/
-│   ├── middlewares/
-│   ├── modules/
-│   │   ├── auth/
-│   │   ├── user/
-│   │   ├── category/
-│   │   ├── gear/
-│   │   └── rental/
-│   │
-│   ├── routes/
-│   ├── utils/
-│   └── app.ts
+├── config/
+├── lib/
+├── middlewares/
+├── modules/
+│   ├── auth/
+│   ├── users/
+│   ├── category/
+│   ├── gear/
+│   ├── rental/
+│   └── payment/
 │
-├── generated/
+├── utils/
+├── app.ts
 └── server.ts
+
+generated/
 ```
 
 ---
@@ -138,6 +138,27 @@ src/
 
 - Belongs to one Customer
 - Belongs to one Gear
+- Has one Payment
+
+---
+
+## Payment
+
+- id
+- rentalOrderId
+- amount
+- provider
+- status
+- stripeCustomerId
+- stripeSessionId
+- transactionId
+- paidAt
+- createdAt
+- updatedAt
+
+### Relations
+
+- One Payment belongs to one Rental Order
 
 ---
 
@@ -145,18 +166,18 @@ src/
 
 JWT Authentication
 
-Supported authentication methods
+Supported methods
 
 ### Authorization Header
 
 ```
-Bearer <token>
+Bearer <access_token>
 ```
 
 or
 
 ```
-<token>
+<access_token>
 ```
 
 ### Cookies
@@ -167,276 +188,197 @@ accessToken=<jwt>
 
 ---
 
-# 👤 User Roles
+# 👥 User Roles
 
-| Role | Permission |
-|------|------------|
-| CUSTOMER | Browse & Rent Gear |
-| PROVIDER | Manage Own Gear & Orders |
-| ADMIN | Platform Management |
+| Role     | Permissions                                |
+| -------- | ------------------------------------------ |
+| CUSTOMER | Browse Gear, Rent Equipment, Make Payments |
+| PROVIDER | Manage Own Gear & Rental Orders            |
+| ADMIN    | Manage Users, Gear, Rentals & Categories   |
 
 ---
 
-# 📌 Implemented Features
+# 📌 Implemented Modules
 
-## ✅ Authentication Module
+## ✅ Authentication
 
-- User Registration
-- Login
-- JWT Access Token
+| Method | Endpoint        |
+| ------ | --------------- |
+| POST   | /api/auth/login |
+
+### Features
+
+- Secure Login
+- JWT Authentication
 - Protected Routes
 - Role Based Authorization
 
 ---
 
-## ✅ User Module
+## ✅ Users
 
-### Endpoints
-
-| Method | Endpoint |
-|--------|----------|
-| POST | /api/users/register |
-| GET | /api/users/me |
-| PUT | /api/users/my-profile |
+| Method | Endpoint              |
+| ------ | --------------------- |
+| POST   | /api/users/register   |
+| GET    | /api/users/me         |
+| PUT    | /api/users/my-profile |
 
 ### Features
 
-- Register User
-- Auto Create Profile
+- User Registration
+- Automatic Profile Creation
 - Update Profile
 - Get Current User
 
 ---
 
-## ✅ Category Module
+## ✅ Categories
 
-### Endpoints
-
-| Method | Endpoint | Access |
-|--------|----------|--------|
-| POST | /api/categories | Admin |
-| GET | /api/categories | Public |
-| GET | /api/categories/:id | Public |
-| PATCH | /api/categories/:id | Admin |
-| DELETE | /api/categories/:id | Admin |
-
-### Features
-
-- Create Category
-- View Categories
-- Update Category
-- Delete Category
+| Method | Endpoint            | Access |
+| ------ | ------------------- | ------ |
+| POST   | /api/categories     | Admin  |
+| GET    | /api/categories     | Public |
+| GET    | /api/categories/:id | Public |
+| PATCH  | /api/categories/:id | Admin  |
+| DELETE | /api/categories/:id | Admin  |
 
 ---
 
-## ✅ Gear Module
+## ✅ Gear
 
-### Public Endpoints
+### Public
 
-| Method | Endpoint |
-|--------|----------|
-| GET | /api/gear |
-| GET | /api/gear/:id |
+| Method | Endpoint      |
+| ------ | ------------- |
+| GET    | /api/gear     |
+| GET    | /api/gear/:id |
 
-### Provider Endpoints
+### Provider
 
-| Method | Endpoint |
-|--------|----------|
-| POST | /api/provider/gear |
-| GET | /api/provider/gear |
-| PATCH | /api/provider/gear/:id |
+| Method | Endpoint               |
+| ------ | ---------------------- |
+| POST   | /api/provider/gear     |
+| GET    | /api/provider/gear     |
+| PATCH  | /api/provider/gear/:id |
 | DELETE | /api/provider/gear/:id |
 
 ### Features
 
-- Create Gear
-- Update Own Gear
-- Delete Own Gear
-- Get Own Inventory
-- Get Single Gear
-- Search by Name, Description & Brand
-- Filter by Category
-- Filter by Brand
-- Filter by Availability
-- Filter by Price Range
+- CRUD Operations
+- Inventory Management
+- Search
+- Filtering
+- Price Range Filter
 - Sorting
-- Pagination with Metadata
+- Pagination
+- Ownership Validation
 
 ---
 
-## ✅ Rental Order Module
+## ✅ Rental Orders
 
-### Customer Endpoints
+### Customer
 
-| Method | Endpoint |
-|--------|----------|
-| POST | /api/rentals |
-| GET | /api/rentals |
-| GET | /api/rentals/:id |
+| Method | Endpoint         |
+| ------ | ---------------- |
+| POST   | /api/rentals     |
+| GET    | /api/rentals     |
+| GET    | /api/rentals/:id |
 
-### Provider Endpoints
+### Provider
 
-| Method | Endpoint |
-|--------|----------|
-| GET | /api/rentals/provider/orders |
-| GET | /api/rentals/provider/orders/:id |
-| PATCH | /api/rentals/provider/orders/:id |
+| Method | Endpoint                         |
+| ------ | -------------------------------- |
+| GET    | /api/rentals/provider/orders     |
+| GET    | /api/rentals/provider/orders/:id |
+| PATCH  | /api/rentals/provider/orders/:id |
 
 ### Features
 
-#### Customer
-
-- Create Rental Order
-- Calculate Rental Duration
-- Calculate Total Rental Cost
-- Reduce Available Gear Quantity
-- Automatically Mark Gear Unavailable When Stock Becomes Zero
-- View Rental History
-- View Rental Details
-
-#### Provider
-
-- View Incoming Rental Orders
-- View Single Rental Order
-- Update Rental Status
+- Create Rental Orders
+- Rental Cost Calculation
+- Rental Duration Calculation
+- Gear Availability Management
+- Rental Status Workflow
 - Ownership Validation
-- Rental Status Transition Validation
 
 ---
 
-# 🔒 Authorization Rules
+## ✅ Payments (Stripe)
 
-## Customer
+| Method | Endpoint                              |
+| ------ | ------------------------------------- |
+| POST   | /api/payments/checkout/:rentalOrderId |
+| POST   | /api/payments/webhook                 |
+| GET    | /api/payments/my-history              |
 
-- View Categories
-- Browse Gear
-- Create Rental
-- View Own Rentals
+### Features
 
----
-
-## Provider
-
-- Manage Own Gear
-- View Incoming Orders
-- Update Rental Status
-
----
-
-## Admin
-
-- Manage Categories
+- Stripe Checkout Session
+- Secure Webhook Verification
+- Automatic Payment Record Creation
+- Rental Payment Status Update
+- Transaction History
 
 ---
 
-# 🛡️ Security
+## ✅ Admin
 
-- Password Hashing (bcrypt)
+| Method | Endpoint             |
+| ------ | -------------------- |
+| GET    | /api/admin/users     |
+| PATCH  | /api/admin/users/:id |
+| GET    | /api/admin/gears     |
+| GET    | /api/admin/rentals   |
+
+### Features
+
+- User Management
+- Suspend / Activate Users
+- Platform-wide Gear Management
+- Platform-wide Rental Management
+
+---
+
+# 🔒 Security
+
 - JWT Authentication
-- Protected Routes
+- Password Hashing (bcrypt)
 - Role Based Authorization
-- Resource Ownership Validation
+- Ownership Validation
 - Rental Status Validation
+- Stripe Webhook Signature Verification
 - Prisma Transactions
 - Global Error Handling
 
 ---
 
-# 📂 Current API Summary
+# ✨ API Features
 
-## Authentication
-
-```
-POST   /api/auth/login
-```
-
----
-
-## Users
-
-```
-POST   /api/users/register
-
-GET    /api/users/me
-
-PUT    /api/users/my-profile
-```
+- Authentication
+- Authorization
+- Search
+- Filtering
+- Sorting
+- Pagination
+- Stripe Payment Integration
+- Transaction Rollback (Prisma Transaction)
+- Consistent API Response Format
+- Centralized Error Handling
 
 ---
 
-## Categories
+# 🚧 Future Improvements
 
-```
-POST   /api/categories
-
-GET    /api/categories
-
-GET    /api/categories/:id
-
-PATCH  /api/categories/:id
-
-DELETE /api/categories/:id
-```
-
----
-
-## Gear
-
-### Public
-
-```
-GET    /api/gear
-
-GET    /api/gear/:id
-```
-
-### Provider
-
-```
-POST   /api/provider/gear
-
-GET    /api/provider/gear
-
-PATCH  /api/provider/gear/:id
-
-DELETE /api/provider/gear/:id
-```
-
----
-
-## Rental Orders
-
-### Customer
-
-```
-POST   /api/rentals
-
-GET    /api/rentals
-
-GET    /api/rentals/:id
-```
-
-### Provider
-
-```
-GET    /api/rentals/provider/orders
-
-GET    /api/rentals/provider/orders/:id
-
-PATCH  /api/rentals/provider/orders/:id
-```
-
----
-
-# 🚧 Upcoming Features
-
-- Payment Module (Stripe / SSLCommerz)
-- Payment History
-- Reviews
-- Admin Module
+- Reviews & Ratings
+- Wishlist
+- Notifications
 - Dashboard Analytics
-- API Validation (Zod)
-- Swagger API Documentation
+- Swagger Documentation
+- Zod Validation
+- Refresh Token Authentication
+- Docker Support
+- CI/CD Pipeline
 
 ---
 
@@ -446,7 +388,7 @@ PATCH  /api/rentals/provider/orders/:id
 
 Full Stack Developer
 
-**Tech Stack**
+### Technologies
 
 - Node.js
 - Express.js
@@ -458,4 +400,4 @@ Full Stack Developer
 
 # 📜 License
 
-This project is developed for educational purposes as part of a Backend Development Assignment.
+This project was developed for educational purposes as part of a Backend Development Assignment.
