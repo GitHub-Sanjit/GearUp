@@ -5,10 +5,8 @@ import { userController } from "./user.controller";
 
 const router = Router();
 
-router.get(
-  "/users",
-  auth(Role.ADMIN),
-  userController.getAllUsers
-);
+router.get("/users", auth(Role.ADMIN), userController.getAllUsers);
+
+router.patch("/users/:id", auth(Role.ADMIN), userController.updateUserStatus);
 
 export const adminUserRoutes = router;
