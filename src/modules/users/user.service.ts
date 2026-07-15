@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "../../lib/prisma";
 import config from "../../config";
 import { IRegisterUserPayload } from "./user.interface";
-import { ActiveStatus } from "../../../generated/prisma/enums";
+import { ActiveStatus, Role } from "../../../generated/prisma/enums";
 
 const userRegisterIntoDB = async (payload: IRegisterUserPayload) => {
   const { name, email, password, profilePhoto, role } = payload;
@@ -18,6 +18,10 @@ const userRegisterIntoDB = async (payload: IRegisterUserPayload) => {
     password,
     Number(config.bcrypt_salt_rounds),
   );
+
+  if (role !== Role.CUSTOMER && role !== Role.PROVIDER) {
+    throw new Error("Invalid role. Only CUSTOMER and PROVIDER can register.");
+  }
 
   const createdUser = await prisma.user.create({
     data: {
