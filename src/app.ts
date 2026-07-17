@@ -50,10 +50,10 @@ app.use("/api/admin", adminGearRoutes);
 app.use("/api/admin", adminRentalRoutes);
 
 /*
-  {
-    "email": "admin@example.com",
-    "password": "123456"
-  }
+  Admin    : admin@gearup.com
+  Provider : provider@gearup.com
+  Customer : customer@gearup.com
+  Password : admin123
 */
 
 app.use(notFound);
