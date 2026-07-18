@@ -1,5 +1,7 @@
 import httpStatus from "http-status";
+
 import { prisma } from "../../lib/prisma";
+import { AppError } from "../../errors/AppError";
 import {
   ICreateCategoryPayload,
   IUpdateCategoryPayload,
@@ -15,7 +17,7 @@ const createCategoryIntoDB = async (payload: ICreateCategoryPayload) => {
   });
 
   if (isCategoryExist) {
-    throw new Error(httpStatus.CONFLICT + " " + "Category already exists");
+    throw new AppError(httpStatus.CONFLICT, "Category already exists");
   }
 
   const category = await prisma.category.create({
@@ -39,11 +41,15 @@ const getAllCategoriesFromDB = async () => {
 };
 
 const getSingleCategoryFromDB = async (categoryId: string) => {
-  const category = await prisma.category.findUniqueOrThrow({
+  const category = await prisma.category.findUnique({
     where: {
       id: categoryId,
     },
   });
+
+  if (!category) {
+    throw new AppError(httpStatus.NOT_FOUND, "Category not found");
+  }
 
   return category;
 };
@@ -52,14 +58,16 @@ const updateCategoryInDB = async (
   categoryId: string,
   payload: IUpdateCategoryPayload,
 ) => {
-  // Check if category exists
-  await prisma.category.findUniqueOrThrow({
+  const category = await prisma.category.findUnique({
     where: {
       id: categoryId,
     },
   });
 
-  // Check duplicate name only if name is being updated
+  if (!category) {
+    throw new AppError(httpStatus.NOT_FOUND, "Category not found");
+  }
+
   if (payload.name) {
     const existingCategory = await prisma.category.findFirst({
       where: {
@@ -71,7 +79,7 @@ const updateCategoryInDB = async (
     });
 
     if (existingCategory) {
-      throw new Error(httpStatus.CONFLICT + " " + "Category already exists");
+      throw new AppError(httpStatus.CONFLICT, "Category already exists");
     }
   }
 
@@ -86,13 +94,23 @@ const updateCategoryInDB = async (
 };
 
 const deleteCategoryFromDB = async (categoryId: string) => {
-  const deletedCategory = await prisma.category.delete({
+  const category = await prisma.category.findUnique({
     where: {
       id: categoryId,
     },
   });
 
-  return deletedCategory;
+  if (!category) {
+    throw new AppError(httpStatus.NOT_FOUND, "Category not found");
+  }
+
+  await prisma.category.delete({
+    where: {
+      id: categoryId,
+    },
+  });
+
+  return null;
 };
 
 export const categoryServices = {

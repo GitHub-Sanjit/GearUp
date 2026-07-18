@@ -1,4 +1,6 @@
+import httpStatus from "http-status";
 import { Prisma, RentalStatus } from "../../../generated/prisma/client";
+import { AppError } from "../../errors/AppError";
 import { prisma } from "../../lib/prisma";
 import { allowedSortFields } from "../gear/gear.interface";
 import { ICreateRentalPayload } from "./rental.interface";
@@ -9,52 +11,54 @@ const createRentalIntoDB = async (
 ) => {
   const { gearId, quantity, startDate, endDate } = payload;
 
-  // 1. Find Gear
   const gear = await prisma.gear.findUnique({
-    where: {
-      id: gearId,
-    },
+    where: { id: gearId },
   });
 
   if (!gear) {
-    throw new Error(`Gear with ID ${gearId} not found.`);
+    throw new AppError(httpStatus.NOT_FOUND, "Gear not found");
   }
 
-  // 2. Check availability
   if (!gear.isAvailable) {
-    throw new Error();
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "This gear is currently unavailable",
+    );
   }
 
-  // 3. Validate quantity
   if (quantity <= 0) {
-    throw new Error("Quantity must be greater than 0.");
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "Quantity must be greater than 0",
+    );
   }
 
   if (quantity > gear.availableQuantity) {
-    throw new Error(`Only ${gear.availableQuantity} item(s) available.`);
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      `Only ${gear.availableQuantity} item(s) available`,
+    );
   }
 
-  // 4. Validate dates
   const start = new Date(startDate);
   const end = new Date(endDate);
 
   if (start >= end) {
-    throw new Error("End date must be after start date.");
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "End date must be after start date",
+    );
   }
 
-  // 5. Calculate total days
   const millisecondsPerDay = 1000 * 60 * 60 * 24;
 
   const totalDays = Math.ceil(
     (end.getTime() - start.getTime()) / millisecondsPerDay,
   );
 
-  // 6. Calculate total amount
   const totalAmount = totalDays * gear.dailyRentalPrice * quantity;
 
-  // 7. Transaction
   const rental = await prisma.$transaction(async (tx) => {
-    // Create Rental
     const createdRental = await tx.rentalOrder.create({
       data: {
         customerId,
@@ -82,7 +86,6 @@ const createRentalIntoDB = async (
       },
     });
 
-    // Update Gear
     const updatedAvailableQuantity = gear.availableQuantity - quantity;
 
     await tx.gear.update({
@@ -102,11 +105,10 @@ const createRentalIntoDB = async (
 };
 
 const getMyRentalsFromDB = async (customerId: string) => {
-  const rentals = await prisma.rentalOrder.findMany({
+  return prisma.rentalOrder.findMany({
     where: {
       customerId,
     },
-
     include: {
       gear: {
         include: {
@@ -122,13 +124,10 @@ const getMyRentalsFromDB = async (customerId: string) => {
         },
       },
     },
-
     orderBy: {
       createdAt: "desc",
     },
   });
-
-  return rentals;
 };
 
 const getSingleRentalFromDB = async (customerId: string, rentalId: string) => {
@@ -154,25 +153,26 @@ const getSingleRentalFromDB = async (customerId: string, rentalId: string) => {
   });
 
   if (!rental) {
-    throw new Error("Rental not found.");
+    throw new AppError(httpStatus.NOT_FOUND, "Rental not found");
   }
 
-  // Ownership Check
   if (rental.customerId !== customerId) {
-    throw new Error("You are not authorized to access this rental.");
+    throw new AppError(
+      httpStatus.FORBIDDEN,
+      "You are not authorized to access this rental",
+    );
   }
 
   return rental;
 };
 
 const getProviderOrdersFromDB = async (providerId: string) => {
-  const orders = await prisma.rentalOrder.findMany({
+  return prisma.rentalOrder.findMany({
     where: {
       gear: {
         providerId,
       },
     },
-
     include: {
       customer: {
         omit: {
@@ -182,20 +182,16 @@ const getProviderOrdersFromDB = async (providerId: string) => {
           profile: true,
         },
       },
-
       gear: {
         include: {
           category: true,
         },
       },
     },
-
     orderBy: {
       createdAt: "desc",
     },
   });
-
-  return orders;
 };
 
 const updateRentalStatusIntoDB = async (
@@ -213,29 +209,29 @@ const updateRentalStatusIntoDB = async (
   });
 
   if (!rental) {
-    throw new Error("Rental not found.");
+    throw new AppError(httpStatus.NOT_FOUND, "Rental not found");
   }
 
-  // Ownership check
   if (rental.gear.providerId !== providerId) {
-    throw new Error(
-      "You are not authorized to update the status of this rental.",
+    throw new AppError(
+      httpStatus.FORBIDDEN,
+      "You are not authorized to update this rental",
     );
   }
 
-  // Allowed transitions
   const allowedTransitions: Record<RentalStatus, RentalStatus[]> = {
     PLACED: ["CONFIRMED", "CANCELLED"],
     CONFIRMED: ["PICKED_UP"],
+    PAID: ["PICKED_UP"],
     PICKED_UP: ["RETURNED"],
     RETURNED: [],
     CANCELLED: [],
-    PAID: ["PICKED_UP"],
   };
 
   if (!allowedTransitions[rental.status].includes(status)) {
-    throw new Error(
-      `Invalid status transition from ${rental.status} to ${status}.`,
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      `Invalid status transition from ${rental.status} to ${status}`,
     );
   }
 
@@ -292,12 +288,14 @@ const getProviderSingleOrderFromDB = async (
   });
 
   if (!order) {
-    throw new Error("Order not found.");
+    throw new AppError(httpStatus.NOT_FOUND, "Order not found");
   }
 
-  // Authorization Check
   if (order.gear.providerId !== providerId) {
-    throw new Error("You are not authorized to access this order.");
+    throw new AppError(
+      httpStatus.FORBIDDEN,
+      "You are not authorized to access this order",
+    );
   }
 
   return order;
@@ -308,7 +306,6 @@ const getAllRentalsForAdmin = async (query: any) => {
 
   const where: Prisma.RentalOrderWhereInput = {};
 
-  // Search
   if (search) {
     where.OR = [
       {
@@ -338,27 +335,22 @@ const getAllRentalsForAdmin = async (query: any) => {
     ];
   }
 
-  // Filter by rental status
   if (status) {
     where.status = status;
   }
 
-  // Filter by payment status
   if (isPaid !== undefined) {
     where.isPaid = isPaid === "true";
   }
 
-  // Pagination
   const currentPage = Number(page) || 1;
   const currentLimit = Number(limit) || 10;
   const skip = (currentPage - 1) * currentLimit;
 
-  // Total
   const total = await prisma.rentalOrder.count({
     where,
   });
 
-  // Sorting
   const orderBy: Prisma.RentalOrderOrderByWithRelationInput =
     sortBy && allowedSortFields.includes(sortBy)
       ? {
@@ -369,13 +361,11 @@ const getAllRentalsForAdmin = async (query: any) => {
           createdAt: Prisma.SortOrder.desc,
         };
 
-  // Query
   const rentals = await prisma.rentalOrder.findMany({
     where,
     skip,
     take: currentLimit,
     orderBy,
-
     include: {
       customer: {
         omit: {
@@ -385,11 +375,9 @@ const getAllRentalsForAdmin = async (query: any) => {
           profile: true,
         },
       },
-
       gear: {
         include: {
           category: true,
-
           provider: {
             omit: {
               password: true,
@@ -400,7 +388,6 @@ const getAllRentalsForAdmin = async (query: any) => {
           },
         },
       },
-
       payment: true,
     },
   });

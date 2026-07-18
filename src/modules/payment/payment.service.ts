@@ -1,12 +1,14 @@
 import httpStatus from "http-status";
 import Stripe from "stripe";
+
 import config from "../../config";
 import { prisma } from "../../lib/prisma";
 import { stripe } from "../../lib/stripe";
+import { AppError } from "../../errors/AppError";
 import { handleCheckoutCompleted } from "./payment.utils";
 
 const createCheckoutSession = async (userId: string, rentalOrderId: string) => {
-  // 1. Find rental order
+  // Find rental order
   const rental = await prisma.rentalOrder.findUnique({
     where: {
       id: rentalOrderId,
@@ -17,40 +19,44 @@ const createCheckoutSession = async (userId: string, rentalOrderId: string) => {
     },
   });
 
-  // 2. Rental exists
+  // Rental exists
   if (!rental) {
-    throw new Error(`Rental order with ID ${rentalOrderId} not found.`);
+    throw new AppError(httpStatus.NOT_FOUND, "Rental order not found");
   }
 
-  // 3. Ownership validation
+  // Ownership validation
   if (rental.customerId !== userId) {
-    throw new Error(
-      `User with ID ${userId} is not authorized to create a checkout session for rental order ${rentalOrderId}.`,
+    throw new AppError(
+      httpStatus.FORBIDDEN,
+      "You are not authorized to pay for this rental order",
     );
   }
 
-  // 4. Rental must be confirmed
+  // Rental must be confirmed
   if (rental.status !== "CONFIRMED") {
-    throw new Error(
-      `Rental order with ID ${rentalOrderId} is not confirmed. Current status: ${rental.status}.`,
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      `Rental order must be CONFIRMED before payment. Current status: ${rental.status}`,
     );
   }
 
-  // 5. Already paid?
+  // Already paid?
   if (rental.isPaid) {
-    throw new Error(
-      `Rental order with ID ${rentalOrderId} has already been paid.`,
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "Rental order has already been paid",
     );
   }
 
-  // 6. Payment already exists?
+  // Existing payment
   if (rental.payment) {
-    throw new Error(
-      `Payment already exists for rental order ${rentalOrderId}.`,
+    throw new AppError(
+      httpStatus.CONFLICT,
+      "Payment already exists for this rental order",
     );
   }
 
-  // 7. Create Stripe Checkout Session
+  // Create Stripe Checkout Session
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
 
@@ -63,10 +69,10 @@ const createCheckoutSession = async (userId: string, rentalOrderId: string) => {
 
           product_data: {
             name: rental.gear.name,
-            description: rental.gear?.description as string,
+            description: rental.gear.description ?? undefined,
           },
 
-          unit_amount: Math.round(Number(rental.totalAmount) * 100),
+          unit_amount: Math.round(rental.totalAmount * 100),
         },
 
         quantity: 1,
@@ -105,7 +111,6 @@ const handleWebhook = async (payload: Buffer, signature: string) => {
 
     default:
       console.log(`Unhandled event type: ${event.type}`);
-      break;
   }
 };
 
@@ -157,7 +162,7 @@ const getMyPayments = async (userId: string) => {
 };
 
 const getProviderPayments = async (providerId: string) => {
-  const payments = await prisma.payment.findMany({
+  return prisma.payment.findMany({
     where: {
       rentalOrder: {
         gear: {
@@ -205,8 +210,6 @@ const getProviderPayments = async (providerId: string) => {
       },
     },
   });
-
-  return payments;
 };
 
 const getAllPayments = async (query: any) => {
@@ -280,7 +283,6 @@ const getAllPayments = async (query: any) => {
       total,
       totalPage: Math.ceil(total / currentLimit),
     },
-
     data: payments,
   };
 };

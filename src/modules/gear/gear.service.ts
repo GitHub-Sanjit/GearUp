@@ -1,5 +1,8 @@
+import httpStatus from "http-status";
 import { Prisma } from "../../../generated/prisma/client";
+
 import { prisma } from "../../lib/prisma";
+import { AppError } from "../../errors/AppError";
 import {
   allowedSortFields,
   ICreateGearPayload,
@@ -17,7 +20,7 @@ const createGearIntoDB = async (
   });
 
   if (!category) {
-    throw new Error(`Category with ID ${payload.categoryId} not found`);
+    throw new AppError(httpStatus.NOT_FOUND, "Category not found");
   }
 
   const gear = await prisma.gear.create({
@@ -46,7 +49,6 @@ const getAllGearFromDB = async (query: any) => {
 
   const where: Prisma.GearWhereInput = {};
 
-  // Search
   if (search) {
     where.OR = [
       {
@@ -70,12 +72,10 @@ const getAllGearFromDB = async (query: any) => {
     ];
   }
 
-  // Category Filter
   if (categoryId) {
     where.categoryId = categoryId;
   }
 
-  // Brand Filter
   if (brand) {
     where.brand = {
       equals: brand,
@@ -83,12 +83,10 @@ const getAllGearFromDB = async (query: any) => {
     };
   }
 
-  // Availability Filter
   if (isAvailable !== undefined) {
     where.isAvailable = isAvailable === "true";
   }
 
-  // Price Range Filter
   const { minPrice, maxPrice } = query;
 
   if (minPrice || maxPrice) {
@@ -103,17 +101,14 @@ const getAllGearFromDB = async (query: any) => {
     }
   }
 
-  // Pagination
   const page = Number(query.page) || 1;
   const limit = Number(query.limit) || 10;
   const skip = (page - 1) * limit;
 
-  // Total Count
   const total = await prisma.gear.count({
     where,
   });
 
-  // Sorting
   const sortField: Prisma.GearScalarFieldEnum = allowedSortFields.includes(
     sortBy as Prisma.GearScalarFieldEnum,
   )
@@ -125,7 +120,6 @@ const getAllGearFromDB = async (query: any) => {
       sortOrder === "asc" ? Prisma.SortOrder.asc : Prisma.SortOrder.desc,
   };
 
-  // Fetch Data
   const gears = await prisma.gear.findMany({
     where,
     skip,
@@ -156,7 +150,7 @@ const getAllGearFromDB = async (query: any) => {
 };
 
 const getSingleGearFromDB = async (gearId: string) => {
-  const gear = await prisma.gear.findUniqueOrThrow({
+  const gear = await prisma.gear.findUnique({
     where: {
       id: gearId,
     },
@@ -173,6 +167,10 @@ const getSingleGearFromDB = async (gearId: string) => {
     },
   });
 
+  if (!gear) {
+    throw new AppError(httpStatus.NOT_FOUND, "Gear not found");
+  }
+
   return gear;
 };
 
@@ -181,19 +179,23 @@ const updateGearInDB = async (
   providerId: string,
   payload: IUpdateGearPayload,
 ) => {
-  // Check gear exists
-  const existingGear = await prisma.gear.findUniqueOrThrow({
+  const existingGear = await prisma.gear.findUnique({
     where: {
       id: gearId,
     },
   });
 
-  // Ownership check
-  if (existingGear.providerId !== providerId) {
-    throw new Error("You are not allowed to update this gear.");
+  if (!existingGear) {
+    throw new AppError(httpStatus.NOT_FOUND, "Gear not found");
   }
 
-  // If category is being changed, verify it exists
+  if (existingGear.providerId !== providerId) {
+    throw new AppError(
+      httpStatus.FORBIDDEN,
+      "You are not allowed to update this gear",
+    );
+  }
+
   if (payload.categoryId) {
     const category = await prisma.category.findUnique({
       where: {
@@ -202,7 +204,7 @@ const updateGearInDB = async (
     });
 
     if (!category) {
-      throw new Error(`Category with ID ${payload.categoryId} not found`);
+      throw new AppError(httpStatus.NOT_FOUND, "Category not found");
     }
   }
 
@@ -228,16 +230,21 @@ const updateGearInDB = async (
 };
 
 const deleteGearFromDB = async (gearId: string, providerId: string) => {
-  // Check gear exists
-  const existingGear = await prisma.gear.findUniqueOrThrow({
+  const existingGear = await prisma.gear.findUnique({
     where: {
       id: gearId,
     },
   });
 
-  // Ownership check
+  if (!existingGear) {
+    throw new AppError(httpStatus.NOT_FOUND, "Gear not found");
+  }
+
   if (existingGear.providerId !== providerId) {
-    throw new Error("You are not allowed to delete this gear.");
+    throw new AppError(
+      httpStatus.FORBIDDEN,
+      "You are not allowed to delete this gear",
+    );
   }
 
   await prisma.gear.delete({
@@ -279,7 +286,6 @@ const getAllGearForAdmin = async (query: any) => {
 
   const where: Prisma.GearWhereInput = {};
 
-  // Search
   if (search) {
     where.OR = [
       {
@@ -303,7 +309,6 @@ const getAllGearForAdmin = async (query: any) => {
     ];
   }
 
-  // Filters
   if (categoryId) {
     where.categoryId = categoryId;
   }
@@ -319,7 +324,6 @@ const getAllGearForAdmin = async (query: any) => {
     where.isAvailable = isAvailable === "true";
   }
 
-  // Price Range
   if (minPrice || maxPrice) {
     where.dailyRentalPrice = {};
 
@@ -332,17 +336,14 @@ const getAllGearForAdmin = async (query: any) => {
     }
   }
 
-  // Pagination
   const page = Number(query.page) || 1;
   const limit = Number(query.limit) || 10;
   const skip = (page - 1) * limit;
 
-  // Total
   const total = await prisma.gear.count({
     where,
   });
 
-  // Sorting
   const orderBy: Prisma.GearOrderByWithRelationInput =
     sortBy && allowedSortFields.includes(sortBy)
       ? {
@@ -353,26 +354,21 @@ const getAllGearForAdmin = async (query: any) => {
           createdAt: Prisma.SortOrder.desc,
         };
 
-  // Query
   const gears = await prisma.gear.findMany({
     where,
     skip,
     take: limit,
     orderBy,
-
     include: {
       category: true,
-
       provider: {
         omit: {
           password: true,
         },
-
         include: {
           profile: true,
         },
       },
-
       rentals: {
         select: {
           id: true,

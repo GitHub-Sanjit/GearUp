@@ -1,27 +1,38 @@
 import bcrypt from "bcryptjs";
-import { prisma } from "../../lib/prisma";
+import httpStatus from "http-status";
+
 import config from "../../config";
+import { prisma } from "../../lib/prisma";
+import { AppError } from "../../errors/AppError";
+
 import { IRegisterUserPayload } from "./user.interface";
 import { ActiveStatus, Role } from "../../../generated/prisma/enums";
 
 const userRegisterIntoDB = async (payload: IRegisterUserPayload) => {
   const { name, email, password, profilePhoto, role = Role.CUSTOMER } = payload;
+
   const isUserExist = await prisma.user.findUnique({
     where: { email },
   });
 
   if (isUserExist) {
-    throw new Error("User with this email already exist");
+    throw new AppError(
+      httpStatus.CONFLICT,
+      "User with this email already exists",
+    );
+  }
+
+  if (role !== Role.CUSTOMER && role !== Role.PROVIDER) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "Invalid role. Only CUSTOMER and PROVIDER can register.",
+    );
   }
 
   const hashedPassword = await bcrypt.hash(
     password,
     Number(config.bcrypt_salt_rounds),
   );
-
-  if (role !== Role.CUSTOMER && role !== Role.PROVIDER) {
-    throw new Error("Invalid role. Only CUSTOMER and PROVIDER can register.");
-  }
 
   const createdUser = await prisma.user.create({
     data: {
@@ -40,7 +51,6 @@ const userRegisterIntoDB = async (payload: IRegisterUserPayload) => {
   const user = await prisma.user.findUnique({
     where: {
       id: createdUser.id,
-      email: createdUser.email || email,
     },
     include: {
       profile: true,
@@ -49,24 +59,47 @@ const userRegisterIntoDB = async (payload: IRegisterUserPayload) => {
       password: true,
     },
   });
+
   return user;
 };
 
 const getMyProfileFromDB = async (userId: string) => {
-  const user = await prisma.user.findUniqueOrThrow({
-    where: { id: userId },
-    omit: { password: true },
-    include: { profile: true },
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    include: {
+      profile: true,
+    },
+    omit: {
+      password: true,
+    },
   });
+
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, "User not found");
+  }
 
   return user;
 };
 
 const updateMyProfileInDB = async (userId: string, payload: any) => {
+  const existingUser = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+
+  if (!existingUser) {
+    throw new AppError(httpStatus.NOT_FOUND, "User not found");
+  }
+
   const { name, email, profilePhoto, bio } = payload;
 
   const updatedUser = await prisma.user.update({
-    where: { id: userId },
+    where: {
+      id: userId,
+    },
     data: {
       name,
       email,
@@ -77,8 +110,12 @@ const updateMyProfileInDB = async (userId: string, payload: any) => {
         },
       },
     },
-    omit: { password: true },
-    include: { profile: true },
+    include: {
+      profile: true,
+    },
+    omit: {
+      password: true,
+    },
   });
 
   return updatedUser;
@@ -124,7 +161,6 @@ const getAllUsers = async (query: any) => {
 
   const currentPage = Number(page);
   const currentLimit = Number(limit);
-
   const skip = (currentPage - 1) * currentLimit;
 
   const total = await prisma.user.count({
@@ -133,18 +169,14 @@ const getAllUsers = async (query: any) => {
 
   const users = await prisma.user.findMany({
     where,
-
     skip,
     take: currentLimit,
-
     orderBy: {
       [sortBy]: sortOrder === "asc" ? "asc" : "desc",
     },
-
     include: {
       profile: true,
     },
-
     omit: {
       password: true,
     },
@@ -157,7 +189,6 @@ const getAllUsers = async (query: any) => {
       total,
       totalPage: Math.ceil(total / currentLimit),
     },
-
     data: users,
   };
 };
@@ -166,12 +197,15 @@ const updateUserStatus = async (
   userId: string,
   payload: { activeStatus: ActiveStatus },
 ) => {
-  // Check if user exists
-  await prisma.user.findUniqueOrThrow({
+  const existingUser = await prisma.user.findUnique({
     where: {
       id: userId,
     },
   });
+
+  if (!existingUser) {
+    throw new AppError(httpStatus.NOT_FOUND, "User not found");
+  }
 
   const updatedUser = await prisma.user.update({
     where: {
@@ -180,11 +214,11 @@ const updateUserStatus = async (
     data: {
       activeStatus: payload.activeStatus,
     },
-    omit: {
-      password: true,
-    },
     include: {
       profile: true,
+    },
+    omit: {
+      password: true,
     },
   });
 
