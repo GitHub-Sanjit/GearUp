@@ -1,28 +1,35 @@
 import bcrypt from "bcryptjs";
-import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
+import { JwtPayload, SignOptions } from "jsonwebtoken";
+import httpStatus from "http-status";
 
 import { prisma } from "../../lib/prisma";
 import { ILoginUser } from "./auth.interface";
 import config from "../../config";
-import { ref } from "node:process";
 import { jwtUtils } from "../../utils/jwt";
-import { access } from "node:fs";
+import { AppError } from "../../errors/AppError";
 
 const loginUser = async (payload: ILoginUser) => {
   const { email, password } = payload;
 
-  const user = await prisma.user.findUniqueOrThrow({
+  const user = await prisma.user.findUnique({
     where: { email },
   });
 
+  if (!user) {
+    throw new AppError(httpStatus.UNAUTHORIZED, "Invalid email or password");
+  }
+
   if (user.activeStatus === "SUSPEND") {
-    throw new Error("Your Account has been suspended. Please Contact Support");
+    throw new AppError(
+      httpStatus.FORBIDDEN,
+      "Your account has been suspended. Please contact support.",
+    );
   }
 
   const isPasswordMatched = await bcrypt.compare(password, user.password);
 
   if (!isPasswordMatched) {
-    throw new Error("Password is incorrect");
+    throw new AppError(httpStatus.UNAUTHORIZED, "Invalid email or password");
   }
 
   const jwtPayload = {
@@ -44,7 +51,10 @@ const loginUser = async (payload: ILoginUser) => {
     config.jwt_refresh_expires_in as SignOptions,
   );
 
-  return { accessToken, refreshToken };
+  return {
+    accessToken,
+    refreshToken,
+  };
 };
 
 const refreshToken = async (refreshToken: string) => {
@@ -52,21 +62,30 @@ const refreshToken = async (refreshToken: string) => {
     refreshToken,
     config.jwt_refresh_secret,
   );
+
   if (!verifiedRefreshToken.success) {
-    throw new Error(verifiedRefreshToken.error);
+    throw new AppError(httpStatus.UNAUTHORIZED, verifiedRefreshToken.error);
   }
 
   const { id } = verifiedRefreshToken.data as JwtPayload;
-  const user = await prisma.user.findUniqueOrThrow({
+
+  const user = await prisma.user.findUnique({
     where: { id },
   });
 
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, "User not found");
+  }
+
   if (user.activeStatus === "SUSPEND") {
-    throw new Error("Your Account has been suspended. Please Contact Support");
+    throw new AppError(
+      httpStatus.FORBIDDEN,
+      "Your account has been suspended. Please contact support.",
+    );
   }
 
   const jwtPayload = {
-    id,
+    id: user.id,
     name: user.name,
     email: user.email,
     role: user.role,
@@ -78,7 +97,9 @@ const refreshToken = async (refreshToken: string) => {
     config.jwt_access_expires_in as SignOptions,
   );
 
-  return { accessToken };
+  return {
+    accessToken,
+  };
 };
 
 export const authService = {
