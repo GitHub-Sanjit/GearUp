@@ -20,7 +20,7 @@ const registerUserValidationSchema = z.object({
       .url("Profile photo must be a valid URL")
       .optional(),
 
-    role: z.enum([Role.CUSTOMER, Role.PROVIDER]),
+    role: z.enum([Role.CUSTOMER, Role.PROVIDER]).optional(),
   }),
 });
 
