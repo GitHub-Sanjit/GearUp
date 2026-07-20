@@ -9,6 +9,9 @@ import { prisma } from "../../lib/prisma";
 export const handleCheckoutCompleted = async (
   session: Stripe.Checkout.Session,
 ) => {
+  console.log("🔥 Processing checkout session:", session.id);
+
+  console.log("Metadata:", session.metadata);
   const rentalOrderId = session.metadata?.rentalOrderId;
 
   if (!rentalOrderId) {
