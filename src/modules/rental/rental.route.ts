@@ -14,10 +14,6 @@ router.post(
   rentalController.createRental,
 );
 
-router.get("/", auth(Role.CUSTOMER), rentalController.getMyRentals);
-
-router.get("/:id", auth(Role.CUSTOMER), rentalController.getSingleRental);
-
 router.get(
   "/provider/orders",
   auth(Role.PROVIDER),
@@ -36,5 +32,9 @@ router.get(
   auth(Role.PROVIDER),
   rentalController.getProviderSingleOrder,
 );
+
+router.get("/", auth(Role.CUSTOMER), rentalController.getMyRentals);
+
+router.get("/:id", auth(Role.CUSTOMER), rentalController.getSingleRental);
 
 export const rentalRoutes = router;
