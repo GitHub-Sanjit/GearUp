@@ -19,11 +19,14 @@ export const handleCheckoutCompleted = async (
     return;
   }
 
+  console.log("Rental ID:", rentalOrderId);
+
   const rentalOrder = await prisma.rentalOrder.findUnique({
     where: {
       id: rentalOrderId,
     },
   });
+  console.log("Rental found:", !!rentalOrder);
 
   if (!rentalOrder) {
     throw new Error(`Rental order with ID ${rentalOrderId} not found.`);
@@ -35,6 +38,10 @@ export const handleCheckoutCompleted = async (
       rentalOrderId,
     },
   });
+
+  console.log("Existing payment:", !!existingPayment);
+
+  console.log("Creating payment...");
 
   if (existingPayment) {
     console.log(`Webhook: Payment already exists for rental ${rentalOrderId}.`);
@@ -71,6 +78,8 @@ export const handleCheckoutCompleted = async (
       },
     });
   });
+
+  console.log("✅ Transaction completed");
 
   console.log(
     `Webhook: Payment completed successfully for rental ${rentalOrderId}.`,
