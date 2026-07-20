@@ -24,7 +24,7 @@ router.patch(
 
 router.delete("/gear/:id", auth(Role.PROVIDER), gearController.deleteGear);
 
-router.get("/gear", auth(Role.PROVIDER), gearController.getMyGear);
+router.get("/my-gear", auth(Role.PROVIDER), gearController.getMyGear);
 
 // provider.route.ts
 
