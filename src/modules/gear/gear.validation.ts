@@ -24,6 +24,11 @@ const createGearValidationSchema = z.object({
       .int("Stock quantity must be an integer")
       .min(1, "Stock quantity must be at least 1"),
 
+    availableQuantity: z
+      .number()
+      .int("Available Quantity must be an integer")
+      .min(1, "Available Quantity must be at least 1"),
+
     categoryId: z.uuid("Invalid category ID"),
 
     condition: z.nativeEnum(GearCondition).optional(),

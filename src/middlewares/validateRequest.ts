@@ -11,9 +11,11 @@ export const validateRequest =
     });
 
     if (!result.success) {
+      console.log(result.error);
+
       return res.status(400).json({
         success: false,
-        message: "Validation failed",
+        message: "Validation failed from middleware",
         errorDetails: result.error.flatten(),
       });
     }
