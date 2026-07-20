@@ -3,10 +3,6 @@ import httpStatus from "http-status";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 import { paymentServices } from "./payment.service";
-import { handleCheckoutCompleted } from "./payment.utils";
-import Stripe from "stripe";
-import { stripe } from "../../lib/stripe";
-import config from "../../config";
 
 const createCheckoutSession = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -28,36 +24,22 @@ const createCheckoutSession = catchAsync(
 );
 
 const handleWebhook = catchAsync(async (req: Request, res: Response) => {
-  // console.log("🔥 WEBHOOK HIT");
+  console.log("🔥 WEBHOOK HIT");
 
-  // const payload = req.body as Buffer;
+  const payload = req.body as Buffer;
 
-  // const signature = req.headers["stripe-signature"] as string;
+  const signature = req.headers["stripe-signature"] as string;
 
-  // console.log("Signature:", signature ? "Received" : "Missing");
+  console.log("Signature:", signature ? "Received" : "Missing");
 
-  // await paymentServices.handleWebhook(payload, signature);
+  await paymentServices.handleWebhook(payload, signature);
 
-  // sendResponse(res, {
-  //   success: true,
-  //   statusCode: httpStatus.OK,
-  //   message: "Webhook processed successfully",
-  //   data: null,
-  // });
-
-  console.log("========== WEBHOOK ==========");
-  console.log("Headers:", req.headers);
-  console.log(
-    "Stripe Signature:",
-    req.headers["stripe-signature"]
-  );
-  console.log(
-    "Is Buffer:",
-    Buffer.isBuffer(req.body)
-  );
-  console.log("=============================");
-
-  res.sendStatus(200);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Webhook processed successfully",
+    data: null,
+  });
 });
 
 // const handleWebhook = catchAsync(async (payload: Buffer, signature: string) => {
