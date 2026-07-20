@@ -6,9 +6,9 @@ const createRentalValidationSchema = z
     body: z.object({
       gearId: z.uuid("Invalid gear ID"),
 
-      startDate: z.string().datetime("Invalid start date"),
+      startDate: z.string().date("Invalid start date"),
 
-      endDate: z.string().datetime("Invalid end date"),
+      endDate: z.string().date("Invalid end date"),
 
       quantity: z
         .number()
