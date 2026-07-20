@@ -24,13 +24,9 @@ const createCheckoutSession = catchAsync(
 );
 
 const handleWebhook = catchAsync(async (req: Request, res: Response) => {
-  console.log("🔥 WEBHOOK HIT");
-
   const payload = req.body as Buffer;
 
   const signature = req.headers["stripe-signature"] as string;
-
-  console.log("Signature:", signature ? "Received" : "Missing");
 
   await paymentServices.handleWebhook(payload, signature);
 
