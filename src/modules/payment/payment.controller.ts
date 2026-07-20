@@ -47,8 +47,14 @@ const handleWebhook = catchAsync(async (req: Request, res: Response) => {
 
   console.log("========== WEBHOOK ==========");
   console.log("Headers:", req.headers);
-  console.log("Stripe Signature:", req.headers["stripe-signature"]);
-  console.log("Is Buffer:", Buffer.isBuffer(req.body));
+  console.log(
+    "Stripe Signature:",
+    req.headers["stripe-signature"]
+  );
+  console.log(
+    "Is Buffer:",
+    Buffer.isBuffer(req.body)
+  );
   console.log("=============================");
 
   res.sendStatus(200);
