@@ -49,6 +49,8 @@ const updateGearValidationSchema = z.object({
 
     stockQuantity: z.number().int().min(1).optional(),
 
+    availableQuantity: z.number().int().min(1).optional(),
+
     categoryId: z.uuid().optional(),
 
     condition: z.nativeEnum(GearCondition).optional(),
