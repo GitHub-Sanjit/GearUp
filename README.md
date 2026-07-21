@@ -2,26 +2,102 @@
 
 > **Rent Sports & Outdoor Gear Instantly**
 
-GearUp is a RESTful Backend API for a sports and outdoor equipment rental platform. Customers can browse and rent gear, providers can manage inventory and rental orders, while administrators oversee the entire platform.
+GearUp is a production-ready RESTful Backend API for a sports and outdoor equipment rental platform. Customers can browse and rent equipment, providers can manage their inventory and rental orders, while administrators oversee the entire platform. The API includes secure JWT authentication, role-based authorization, Stripe payment integration, and PostgreSQL with Prisma ORM.
 
-> 🚀 **Project Status:** Completed Backend API
+---
+
+# 🔗 Resources
+
+| Resource                                   | Link                                                                               |
+| ------------------------------------------ | ---------------------------------------------------------------------------------- |
+| **Backend Repository**                     | https://github.com/GitHub-Sanjit/GearUp                                            |
+| **Live API**                               | https://gearup-zk8c.onrender.com                                                   |
+| **API Documentation (Postman Collection)** | https://drive.google.com/file/d/1ElKHE2zImyKhMOB1rCjoVbaGIQxEtqHU/view?usp=sharing |
+| **API Environment Variables**              | https://drive.google.com/file/d/1sxZMlfCMAEsho1-XSU7RMwL7i6A1PrMq/view?usp=sharing |
+| **ERD Diagram**                            | https://drive.google.com/file/d/1KCkFcaPa9Iq7tRT9KUmHXgEGQ3sxd6g_/view?usp=sharing |
 
 ---
 
 # 🚀 Tech Stack
 
-- Node.js
-- Express.js
-- TypeScript
-- PostgreSQL
-- Prisma ORM
-- JWT Authentication
-- Stripe Payment Gateway
-- bcryptjs
-- Cookie Parser
-- HTTP Status
-- ESLint
-- Prettier
+* Node.js
+* Express.js
+* TypeScript
+* PostgreSQL
+* Prisma ORM
+* JWT Authentication
+* Stripe Payment Gateway
+* bcryptjs
+* Cookie Parser
+* Zod Validation
+* HTTP Status
+* ESLint
+* Prettier
+
+---
+
+# ⚙️ Installation
+
+Clone the repository
+
+```bash
+git clone https://github.com/GitHub-Sanjit/GearUp.git
+```
+
+Move into the project directory
+
+```bash
+cd GearUp
+```
+
+Install dependencies
+
+```bash
+npm install
+```
+
+Generate Prisma Client
+
+```bash
+npx prisma generate
+```
+
+Run database migrations
+
+```bash
+npx prisma migrate dev
+```
+
+Start the development server
+
+```bash
+npm run dev
+```
+
+---
+
+# 🌱 Environment Variables
+
+Create a `.env` file in the project root.
+
+```env
+PORT=
+
+DATABASE_URL=
+
+JWT_ACCESS_SECRET=
+JWT_ACCESS_EXPIRES_IN=
+
+JWT_REFRESH_SECRET=
+JWT_REFRESH_EXPIRES_IN=
+
+BCRYPT_SALT_ROUNDS=
+
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+
+APP_URL=
+```
 
 ---
 
@@ -31,6 +107,7 @@ GearUp is a RESTful Backend API for a sports and outdoor equipment rental platfo
 src/
 │
 ├── config/
+├── errors/
 ├── lib/
 ├── middlewares/
 ├── modules/
@@ -54,135 +131,135 @@ generated/
 
 ## User
 
-- id
-- name
-- email
-- password
-- role
-- activeStatus
-- createdAt
-- updatedAt
+* id
+* name
+* email
+* password
+* role
+* activeStatus
+* createdAt
+* updatedAt
 
 ### Relations
 
-- One User has one Profile
-- One Provider has many Gear
-- One Customer has many Rental Orders
+* One User has one Profile
+* One Provider has many Gear
+* One Customer has many Rental Orders
 
 ---
 
 ## Profile
 
-- id
-- profilePhoto
-- bio
-- userId
+* id
+* profilePhoto
+* bio
+* userId
 
 ---
 
 ## Category
 
-- id
-- name
-- description
-- createdAt
-- updatedAt
+* id
+* name
+* description
+* createdAt
+* updatedAt
 
 ### Relations
 
-- One Category has many Gear
+* One Category has many Gear
 
 ---
 
 ## Gear
 
-- id
-- name
-- description
-- brand
-- image
-- dailyRentalPrice
-- stockQuantity
-- availableQuantity
-- condition
-- isAvailable
-- providerId
-- categoryId
-- createdAt
-- updatedAt
+* id
+* name
+* description
+* brand
+* image
+* dailyRentalPrice
+* stockQuantity
+* availableQuantity
+* condition
+* isAvailable
+* providerId
+* categoryId
+* createdAt
+* updatedAt
 
 ### Relations
 
-- Belongs to one Provider
-- Belongs to one Category
-- Has many Rental Orders
+* Belongs to one Provider
+* Belongs to one Category
+* Has many Rental Orders
 
 ---
 
 ## Rental Order
 
-- id
-- customerId
-- gearId
-- quantity
-- startDate
-- endDate
-- totalDays
-- totalAmount
-- status
-- isPaid
-- createdAt
-- updatedAt
+* id
+* customerId
+* gearId
+* quantity
+* startDate
+* endDate
+* totalDays
+* totalAmount
+* status
+* isPaid
+* createdAt
+* updatedAt
 
 ### Relations
 
-- Belongs to one Customer
-- Belongs to one Gear
-- Has one Payment
+* Belongs to one Customer
+* Belongs to one Gear
+* Has one Payment
 
 ---
 
 ## Payment
 
-- id
-- rentalOrderId
-- amount
-- provider
-- status
-- stripeCustomerId
-- stripeSessionId
-- transactionId
-- paidAt
-- createdAt
-- updatedAt
+* id
+* rentalOrderId
+* amount
+* provider
+* status
+* stripeCustomerId
+* stripeSessionId
+* transactionId
+* paidAt
+* createdAt
+* updatedAt
 
 ### Relations
 
-- One Payment belongs to one Rental Order
+* One Payment belongs to one Rental Order
 
 ---
 
 # 🔐 Authentication
 
-JWT Authentication
+The API uses JWT Authentication.
 
-Supported methods
+Supported Authorization methods:
 
 ### Authorization Header
 
-```
+```text
 Bearer <access_token>
 ```
 
 or
 
-```
+```text
 <access_token>
 ```
 
 ### Cookies
 
-```
+```text
 accessToken=<jwt>
 ```
 
@@ -190,32 +267,32 @@ accessToken=<jwt>
 
 # 👥 User Roles
 
-| Role     | Permissions                                |
-| -------- | ------------------------------------------ |
-| CUSTOMER | Browse Gear, Rent Equipment, Make Payments |
-| PROVIDER | Manage Own Gear & Rental Orders            |
-| ADMIN    | Manage Users, Gear, Rentals & Categories   |
+| Role     | Description                                                     |
+| -------- | --------------------------------------------------------------- |
+| CUSTOMER | Browse gear, create rental orders, make payments                |
+| PROVIDER | Manage own gear inventory and rental orders                     |
+| ADMIN    | Manage users, categories, gear, rentals and platform operations |
 
 ---
 
-# 📌 Implemented Modules
+# 📌 API Modules
 
-## ✅ Authentication
+## Authentication
 
 | Method | Endpoint        |
 | ------ | --------------- |
 | POST   | /api/auth/login |
 
-### Features
+**Features**
 
-- Secure Login
-- JWT Authentication
-- Protected Routes
-- Role Based Authorization
+* Secure Login
+* JWT Authentication
+* Role-Based Authorization
+* Protected Routes
 
 ---
 
-## ✅ Users
+## Users
 
 | Method | Endpoint              |
 | ------ | --------------------- |
@@ -223,16 +300,16 @@ accessToken=<jwt>
 | GET    | /api/users/me         |
 | PUT    | /api/users/my-profile |
 
-### Features
+**Features**
 
-- User Registration
-- Automatic Profile Creation
-- Update Profile
-- Get Current User
+* User Registration
+* Automatic Profile Creation
+* Profile Update
+* Current User Information
 
 ---
 
-## ✅ Categories
+## Categories
 
 | Method | Endpoint            | Access |
 | ------ | ------------------- | ------ |
@@ -244,7 +321,7 @@ accessToken=<jwt>
 
 ---
 
-## ✅ Gear
+## Gear
 
 ### Public
 
@@ -262,20 +339,19 @@ accessToken=<jwt>
 | PATCH  | /api/provider/gear/:id |
 | DELETE | /api/provider/gear/:id |
 
-### Features
+**Features**
 
-- CRUD Operations
-- Inventory Management
-- Search
-- Filtering
-- Price Range Filter
-- Sorting
-- Pagination
-- Ownership Validation
+* CRUD Operations
+* Inventory Management
+* Search
+* Filtering
+* Sorting
+* Pagination
+* Ownership Validation
 
 ---
 
-## ✅ Rental Orders
+## Rental Orders
 
 ### Customer
 
@@ -293,36 +369,37 @@ accessToken=<jwt>
 | GET    | /api/rentals/provider/orders/:id |
 | PATCH  | /api/rentals/provider/orders/:id |
 
-### Features
+**Features**
 
-- Create Rental Orders
-- Rental Cost Calculation
-- Rental Duration Calculation
-- Gear Availability Management
-- Rental Status Workflow
-- Ownership Validation
-
----
-
-## ✅ Payments (Stripe)
-
-| Method | Endpoint                              |
-| ------ | ------------------------------------- |
-| POST   | /api/payments/checkout/:rentalOrderId |
-| POST   | /api/payments/webhook                 |
-| GET    | /api/payments/my-history              |
-
-### Features
-
-- Stripe Checkout Session
-- Secure Webhook Verification
-- Automatic Payment Record Creation
-- Rental Payment Status Update
-- Transaction History
+* Rental Duration Calculation
+* Rental Cost Calculation
+* Inventory Availability Management
+* Rental Status Workflow
+* Ownership Validation
 
 ---
 
-## ✅ Admin
+## Payments (Stripe)
+
+| Method | Endpoint                     |
+| ------ | ---------------------------- |
+| POST   | /api/payments/checkout       |
+| POST   | /api/payments/webhook        |
+| GET    | /api/payments/my-payments    |
+| GET    | /api/payments/admin/payments |
+
+**Features**
+
+* Stripe Checkout Session
+* Secure Webhook Verification
+* Automatic Payment Record Creation
+* Rental Payment Status Update
+* Payment History
+* Transaction Management
+
+---
+
+## Admin
 
 | Method | Endpoint             |
 | ------ | -------------------- |
@@ -331,54 +408,85 @@ accessToken=<jwt>
 | GET    | /api/admin/gears     |
 | GET    | /api/admin/rentals   |
 
-### Features
+**Features**
 
-- User Management
-- Suspend / Activate Users
-- Platform-wide Gear Management
-- Platform-wide Rental Management
+* User Management
+* Activate / Suspend Users
+* Platform-wide Gear Management
+* Platform-wide Rental Management
 
 ---
 
-# 🔒 Security
+# 🔑 Demo Admin Account
 
-- JWT Authentication
-- Password Hashing (bcrypt)
-- Role Based Authorization
-- Ownership Validation
-- Rental Status Validation
-- Stripe Webhook Signature Verification
-- Prisma Transactions
-- Global Error Handling
+| Email                                       | Password |
+| ------------------------------------------- | -------- |
+| [admin@gearup.com](mailto:admin@gearup.com) | admin123 |
+
+---
+
+# 📦 API Response Format
+
+### Success Response
+
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "Operation completed successfully",
+  "data": {}
+}
+```
+
+### Error Response
+
+```json
+{
+  "success": false,
+  "message": "Validation failed",
+  "errorDetails": {}
+}
+```
+
+---
+
+# 🔒 Security Features
+
+* JWT Authentication
+* Password Hashing (bcrypt)
+* Role-Based Authorization
+* Ownership Validation
+* Stripe Webhook Signature Verification
+* Prisma Transactions
+* Request Validation using Zod
+* Centralized Error Handling
 
 ---
 
 # ✨ API Features
 
-- Authentication
-- Authorization
-- Search
-- Filtering
-- Sorting
-- Pagination
-- Stripe Payment Integration
-- Transaction Rollback (Prisma Transaction)
-- Consistent API Response Format
-- Centralized Error Handling
+* Authentication & Authorization
+* Search
+* Filtering
+* Sorting
+* Pagination
+* Stripe Payment Integration
+* Inventory Management
+* Transaction Rollback using Prisma Transactions
+* Consistent API Response Structure
+* Global Error Handling
 
 ---
 
-# 🚧 Future Improvements
+# 🚀 Future Improvements
 
-- Reviews & Ratings
-- Wishlist
-- Notifications
-- Dashboard Analytics
-- Swagger Documentation
-- Zod Validation
-- Refresh Token Authentication
-- Docker Support
-- CI/CD Pipeline
+* Reviews & Ratings
+* Wishlist
+* Notifications
+* Dashboard Analytics
+* Swagger / OpenAPI Documentation
+* Docker Support
+* CI/CD Pipeline
 
 ---
 
@@ -390,14 +498,14 @@ Full Stack Developer
 
 ### Technologies
 
-- Node.js
-- Express.js
-- TypeScript
-- PostgreSQL
-- Prisma ORM
+* Node.js
+* Express.js
+* TypeScript
+* PostgreSQL
+* Prisma ORM
 
 ---
 
-# 📜 License
+# 📄 License
 
 This project was developed for educational purposes as part of a Backend Development Assignment.
