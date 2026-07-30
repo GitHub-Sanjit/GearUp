@@ -5,5 +5,5 @@ export interface IRegisterUserPayload {
   email: string;
   password: string;
   profilePhoto?: string;
-  role: Role;
+  role?: Role;
 }
