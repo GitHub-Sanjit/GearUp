@@ -1,0 +1,112 @@
+.
+├── .env
+├── .gitignore
+├── README.md
+├── generated
+│   └── prisma
+│       ├── browser.ts
+│       ├── client.ts
+│       ├── commonInputTypes.ts
+│       ├── enums.ts
+│       ├── internal
+│       │   ├── class.ts
+│       │   ├── prismaNamespace.ts
+│       │   └── prismaNamespaceBrowser.ts
+│       ├── models
+│       │   ├── Category.ts
+│       │   ├── Gear.ts
+│       │   ├── Payment.ts
+│       │   ├── Profile.ts
+│       │   ├── RentalOrder.ts
+│       │   └── User.ts
+│       └── models.ts
+├── package-lock.json
+├── package.json
+├── prisma
+│   ├── migrations
+│   │   ├── 20260711150051_users_and_profiles
+│   │   │   └── migration.sql
+│   │   ├── 20260711162415_category
+│   │   │   └── migration.sql
+│   │   ├── 20260711180907_gear
+│   │   │   └── migration.sql
+│   │   ├── 20260712164042_rental
+│   │   │   └── migration.sql
+│   │   ├── 20260714171127_payment
+│   │   │   └── migration.sql
+│   │   └── migration_lock.toml
+│   ├── schema
+│   │   ├── categories.prisma
+│   │   ├── enums.prisma
+│   │   ├── gear.prisma
+│   │   ├── payment.prisma
+│   │   ├── profile.prisma
+│   │   ├── rentalOrders.prisma
+│   │   ├── schema.prisma
+│   │   └── user.prisma
+│   └── seed.ts
+├── prisma.config.ts
+├── scripts
+│   └── generate-project-structure.js
+├── src
+│   ├── app.ts
+│   ├── config
+│   │   └── index.ts
+│   ├── errors
+│   │   └── AppError.ts
+│   ├── lib
+│   │   ├── prisma.ts
+│   │   └── stripe.ts
+│   ├── middlewares
+│   │   ├── auth.ts
+│   │   ├── globalErrorHandler.ts
+│   │   ├── notFound.ts
+│   │   └── validateRequest.ts
+│   ├── modules
+│   │   ├── auth
+│   │   │   ├── auth.controller.ts
+│   │   │   ├── auth.interface.ts
+│   │   │   ├── auth.route.ts
+│   │   │   ├── auth.service.ts
+│   │   │   └── auth.validation.ts
+│   │   ├── category
+│   │   │   ├── category.controller.ts
+│   │   │   ├── category.interface.ts
+│   │   │   ├── category.service.ts
+│   │   │   ├── category.validation.ts
+│   │   │   └── caterory.route.ts
+│   │   ├── gear
+│   │   │   ├── admin.route.ts
+│   │   │   ├── gear.controller.ts
+│   │   │   ├── gear.interface.ts
+│   │   │   ├── gear.route.ts
+│   │   │   ├── gear.service.ts
+│   │   │   ├── gear.validation.ts
+│   │   │   └── provider.route.ts
+│   │   ├── payment
+│   │   │   ├── payment.controller.ts
+│   │   │   ├── payment.interface.ts
+│   │   │   ├── payment.route.ts
+│   │   │   ├── payment.service.ts
+│   │   │   ├── payment.utils.ts
+│   │   │   └── payment.validation.ts
+│   │   ├── rental
+│   │   │   ├── admin.route.ts
+│   │   │   ├── rental.controller.ts
+│   │   │   ├── rental.interface.ts
+│   │   │   ├── rental.route.ts
+│   │   │   ├── rental.service.ts
+│   │   │   └── rental.validation.ts
+│   │   └── users
+│   │       ├── admin.route.ts
+│   │       ├── user.controller.ts
+│   │       ├── user.interface.ts
+│   │       ├── user.route.ts
+│   │       ├── user.service.ts
+│   │       └── user.validation.ts
+│   ├── server.ts
+│   └── utils
+│       ├── catchAsync.ts
+│       ├── jwt.ts
+│       └── sendResponse.ts
+└── tsconfig.json
