@@ -7,7 +7,7 @@
     "build": "tsup src/server.ts --format esm --target node20 --out-dir dist",
     "start": "node dist/server.js",
     "dev": "tsx watch src/server.ts",
-    "stripe:webhook": "stripe listen --forward-to localhost:5000/api/subscription/webhook",
+    "stripe:webhook": "stripe listen --forward-to localhost:5000/api/payments/webhook",
     "structure": "node scripts/generate-project-structure.js"
   },
   "repository": {
