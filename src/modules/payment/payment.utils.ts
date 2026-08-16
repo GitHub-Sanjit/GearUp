@@ -1,9 +1,11 @@
 import Stripe from "stripe";
+
 import {
   PaymentProvider,
   PaymentStatus,
   RentalStatus,
 } from "../../../generated/prisma/enums";
+
 import { prisma } from "../../lib/prisma";
 
 export const handleCheckoutCompleted = async (
@@ -15,7 +17,6 @@ export const handleCheckoutCompleted = async (
     console.log("Webhook: Missing rentalOrderId in metadata.");
     return;
   }
-
 
   const rentalOrder = await prisma.rentalOrder.findUnique({
     where: {
@@ -36,6 +37,7 @@ export const handleCheckoutCompleted = async (
 
   if (existingPayment) {
     console.log(`Webhook: Payment already exists for rental ${rentalOrderId}.`);
+
     return;
   }
 
@@ -49,11 +51,15 @@ export const handleCheckoutCompleted = async (
 
         status: PaymentStatus.COMPLETED,
 
-        stripeCustomerId: session.customer as string,
+        stripeCustomerId:
+          typeof session.customer === "string" ? session.customer : null,
 
         stripeSessionId: session.id,
 
-        transactionId: session.payment_intent as string,
+        transactionId:
+          typeof session.payment_intent === "string"
+            ? session.payment_intent
+            : null,
 
         paidAt: new Date(),
       },
