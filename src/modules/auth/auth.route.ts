@@ -1,6 +1,9 @@
 import { Router } from "express";
+
 import { authController } from "./auth.controller";
+
 import { validateRequest } from "../../middlewares/validateRequest";
+
 import { authValidation } from "./auth.validation";
 
 const router = Router();
@@ -12,5 +15,7 @@ router.post(
 );
 
 router.post("/refresh-token", authController.refreshToken);
+
+router.post("/logout", authController.logoutUser);
 
 export const authRoutes = router;
