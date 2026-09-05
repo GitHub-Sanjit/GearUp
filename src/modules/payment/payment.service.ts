@@ -32,11 +32,11 @@ const createCheckoutSession = async (userId: string, rentalOrderId: string) => {
     );
   }
 
-  // Rental must be confirmed
-  if (rental.status !== "CONFIRMED") {
+  // Rental must be active and payable
+  if (rental.status !== "PLACED" && rental.status !== "CONFIRMED") {
     throw new AppError(
       httpStatus.BAD_REQUEST,
-      `Rental order must be CONFIRMED before payment. Current status: ${rental.status}`,
+      `Rental order cannot be paid in its current status: ${rental.status}`,
     );
   }
 
@@ -80,7 +80,6 @@ const createCheckoutSession = async (userId: string, rentalOrderId: string) => {
     ],
 
     success_url: `${config.app_url}/payment/success`,
-
     cancel_url: `${config.app_url}/payment/cancel`,
 
     metadata: {
